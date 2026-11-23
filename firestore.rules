@@ -1,0 +1,83 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserProfile() {
+      return get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data;
+    }
+
+    function isActive() {
+      return isAuthenticated() && getUserProfile().status == 'ACTIVE';
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && getUserProfile().role == 'ADMIN';
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && getUserProfile().role == 'SUPER_ADMIN';
+    }
+
+    // 1. User Profiles Collection
+    match /profiles/{uid} {
+      // User can read their own profile; Super Admin can read all profiles
+      allow read: if isAuthenticated() && (request.auth.uid == uid || (isSuperAdmin() && isActive()));
+
+      // Super Admin can create, freeze, or update profiles
+      // Regular user can only update their own safe fields (mustChangePassword, updatedAt, lastLoginAt)
+      allow create: if isSuperAdmin() && isActive();
+      
+      allow update: if (isSuperAdmin() && isActive()) || 
+        (isAuthenticated() && request.auth.uid == uid && isActive() && 
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mustChangePassword', 'updatedAt', 'lastLoginAt']));
+
+      // Only Super Admin can delete profiles
+      allow delete: if isSuperAdmin() && isActive() && request.auth.uid != uid;
+    }
+
+    // 2. Leads Collection
+    match /leads/{leadId} {
+      // Public visitors cannot read leads directly
+      // Active Admin or Super Admin can view all leads
+      allow read: if isActive() && (isAdmin() || isSuperAdmin());
+
+      // Leads are created securely via server-side Admin SDK route (/api/leads)
+      allow create: if false;
+
+      // Active Admin or Super Admin can update status and internalNotes only
+      allow update: if isActive() && (isAdmin() || isSuperAdmin()) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'internalNotes', 'updatedAt']) &&
+        request.resource.data.id == resource.data.id &&
+        request.resource.data.primaryPhone == resource.data.primaryPhone;
+
+      // Only Super Admin can delete a lead
+      allow delete: if isSuperAdmin() && isActive();
+    }
+
+    // 3. Lead Status History
+    match /lead_status_history/{historyId} {
+      // Readable by Active Admin or Super Admin
+      allow read: if isActive() && (isAdmin() || isSuperAdmin());
+      // Immutable from client; appended via server-side Admin SDK
+      allow write: if false;
+    }
+
+    // 4. Audit Logs
+    match /audit_logs/{logId} {
+      // Readable exclusively by Active Super Admin
+      allow read: if isSuperAdmin() && isActive();
+      // Immutable; written exclusively via server-side Admin SDK
+      allow write: if false;
+    }
+  }
+}

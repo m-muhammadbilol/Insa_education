@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80">
+  <defs>
+    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#581C87"/>
+      <stop offset="100%" stop-color="#3B0764"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(10, 10)">
+    <rect width="60" height="60" rx="14" fill="url(#badgeGrad)"/>
+    <g transform="translate(30, 30) scale(0.6)">
+    <path d="M 2,-6 C 9,-18 22,-27 34,-26 C 27,-17 21,-8 16,1 C 10,9 3,8 1,2 C -1,-2 0,-4 2,-6 Z" fill="#FFFFFF" transform="rotate(0)" />
+    <path d="M 2,-6 C 9,-18 22,-27 34,-26 C 27,-17 21,-8 16,1 C 10,9 3,8 1,2 C -1,-2 0,-4 2,-6 Z" fill="#FFFFFF" transform="rotate(60)" />
+    <path d="M 2,-6 C 9,-18 22,-27 34,-26 C 27,-17 21,-8 16,1 C 10,9 3,8 1,2 C -1,-2 0,-4 2,-6 Z" fill="#FFFFFF" transform="rotate(120)" />
+    <path d="M 2,-6 C 9,-18 22,-27 34,-26 C 27,-17 21,-8 16,1 C 10,9 3,8 1,2 C -1,-2 0,-4 2,-6 Z" fill="#FFFFFF" transform="rotate(180)" />
+    <path d="M 2,-6 C 9,-18 22,-27 34,-26 C 27,-17 21,-8 16,1 C 10,9 3,8 1,2 C -1,-2 0,-4 2,-6 Z" fill="#FFFFFF" transform="rotate(240)" />
+    <path d="M 2,-6 C 9,-18 22,-27 34,-26 C 27,-17 21,-8 16,1 C 10,9 3,8 1,2 C -1,-2 0,-4 2,-6 Z" fill="#FFFFFF" transform="rotate(300)" />
+    </g>
+  </g>
+  <!-- Brand text -->
+  <text x="84" y="44" font-family="system-ui, -apple-system, 'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="28" fill="#1E1B4B" letter-spacing="1">INSA</text>
+  <text x="84" y="60" font-family="system-ui, -apple-system, 'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="10.5" fill="#6B21A8" letter-spacing="4">EDUCATION</text>
+</svg>
