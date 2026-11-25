@@ -25,6 +25,9 @@ import {
 export default function AdminLeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMoreLeads, setHasMoreLeads] = useState(false);
+  const [nextOffset, setNextOffset] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   // Filters
@@ -49,33 +52,60 @@ export default function AdminLeadsPage() {
     try {
       setLoading(true);
       setError(null);
+      setLeads([]);
+      setHasMoreLeads(false);
       const accessToken = await getAccessToken();
       if (!accessToken) throw new Error("Sessiya topilmadi. Iltimos, qaytadan kiring.");
 
-      const baseUrl =
+      const url =
         statusFilter === "ALL"
-          ? "/api/admin/leads?limit=100"
-          : `/api/admin/leads?status=${statusFilter}&limit=100`;
-      const allLeads: Lead[] = [];
-      let offset = 0;
-      let hasMore = true;
-      while (hasMore && offset < 10000) {
-        const res = await authenticatedFetch(`${baseUrl}&offset=${offset}`);
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          throw new Error(data.message || "Leadlarni yuklashda xatolik yuz berdi");
-        }
-        allLeads.push(...(data.leads || []));
-        hasMore = Boolean(data.hasMore);
-        offset += 100;
+          ? "/api/admin/leads?limit=100&offset=0"
+          : `/api/admin/leads?status=${statusFilter}&limit=100&offset=0`;
+      const res = await authenticatedFetch(url);
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Leadlarni yuklashda xatolik yuz berdi");
       }
-      if (hasMore) throw new Error("Juda ko'p ariza bor. Qidiruv orqali natijani toraytiring.");
-      setLeads(allLeads);
+
+      const firstBatch = data.leads || [];
+      setLeads(firstBatch);
+      setHasMoreLeads(Boolean(data.hasMore));
+      setNextOffset(firstBatch.length);
+      setPage(1);
     } catch (err: any) {
       console.error(err);
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMoreLeads = async () => {
+    if (loadingMore || !hasMoreLeads) return;
+
+    try {
+      setLoadingMore(true);
+      setError(null);
+      const url = new URL("/api/admin/leads", window.location.origin);
+      url.searchParams.set("limit", "100");
+      url.searchParams.set("offset", String(nextOffset));
+      if (statusFilter !== "ALL") url.searchParams.set("status", statusFilter);
+
+      const res = await authenticatedFetch(url);
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Keyingi arizalarni yuklab bo'lmadi");
+      }
+
+      const batch = data.leads || [];
+      setLeads((current) => [...current, ...batch]);
+      setNextOffset((offset) => offset + batch.length);
+      setHasMoreLeads(Boolean(data.hasMore));
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -234,11 +264,13 @@ export default function AdminLeadsPage() {
             <div className="flex h-64 items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-brand-900" />
             </div>
-          ) : error ? (
+          ) : error && leads.length === 0 ? (
             <div className="p-6 text-center text-xs text-rose-600">{error}</div>
           ) : filteredLeads.length === 0 ? (
             <div className="py-16 text-center text-xs text-slate-400">
-              Qidiruv yoki filtr bo'yicha hech qanday ariza topilmadi.
+              {hasMoreLeads
+                ? "Yuklangan arizalarda topilmadi. Pastdagi tugma orqali qolgan arizalarni yuklang."
+                : "Qidiruv yoki filtr bo'yicha hech qanday ariza topilmadi."}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -367,28 +399,49 @@ export default function AdminLeadsPage() {
             </div>
           )}
 
+          {error && leads.length > 0 && (
+            <div role="alert" className="border-t border-rose-100 bg-rose-50 px-4 py-3 text-xs text-rose-700">
+              {error}
+            </div>
+          )}
+
           {/* Pagination Controls */}
-          {filteredLeads.length > pageSize && (
-            <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3 bg-slate-50/50">
+          {(filteredLeads.length > pageSize || hasMoreLeads) && (
+            <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-xs text-slate-500">
-                Jami: <strong>{filteredLeads.length}</strong> ta lead (Sahifa:{" "}
-                {page} / {totalPages})
+                Ko'rsatilmoqda: <strong>{leads.length}</strong> ta ariza
+                {hasMoreLeads && <span> · yana arizalar bor</span>}
+                {filteredLeads.length > pageSize && <> · Sahifa: {page} / {totalPages}</>}
               </span>
-              <div className="flex items-center gap-2">
-                <button
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                >
-                  Oldingi
-                </button>
-                <button
-                  disabled={page === totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                >
-                  Keyingi
-                </button>
+              <div className="flex flex-wrap items-center gap-2">
+                {filteredLeads.length > pageSize && (
+                  <>
+                    <button
+                      disabled={page === 1}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      className="min-h-11 rounded-lg border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      Oldingi
+                    </button>
+                    <button
+                      disabled={page === totalPages}
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      className="min-h-11 rounded-lg border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      Keyingi
+                    </button>
+                  </>
+                )}
+                {hasMoreLeads && (
+                  <button
+                    onClick={loadMoreLeads}
+                    disabled={loadingMore}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand-900 px-4 text-xs font-bold text-white disabled:opacity-60"
+                  >
+                    {loadingMore && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {loadingMore ? "Yuklanmoqda..." : "Yana 100 ta ariza"}
+                  </button>
+                )}
               </div>
             </div>
           )}

@@ -25,7 +25,7 @@ export default function HomePage() {
         <Contact />
       </main>
       <Footer />
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 pt-2.5 pb-[max(env(safe-area-inset-bottom),0.75rem)] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white px-4 pt-2.5 pb-[max(env(safe-area-inset-bottom),0.75rem)] shadow-[0_-4px_12px_rgba(15,23,42,0.06)] md:hidden">
         <a
           href="#lead-form"
           className="flex min-h-12 w-full items-center justify-center rounded-xl bg-brand-900 px-4 text-sm font-bold text-white shadow-sm active:scale-[0.99]"

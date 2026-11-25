@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState } from "react";
+import React from "react";
 import { ChevronDown, HelpCircle } from "lucide-react";
 
 interface FAQItem {
@@ -9,8 +7,6 @@ interface FAQItem {
 }
 
 export default function FAQ() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-
   const faqs: FAQItem[] = [
     {
       question: "Darslar qayerda o'tiladi va qanday borish mumkin?",
@@ -39,10 +35,6 @@ export default function FAQ() {
     },
   ];
 
-  const toggle = (idx: number) => {
-    setOpenIndex(openIndex === idx ? null : idx);
-  };
-
   return (
     <section className="py-16 sm:py-24 bg-white border-t border-slate-100">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -64,33 +56,26 @@ export default function FAQ() {
         {/* Accordion */}
         <div className="space-y-3.5">
           {faqs.map((faq, idx) => {
-            const isOpen = openIndex === idx;
             return (
-              <div
+              <details
                 key={idx}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white transition-colors"
+                open={idx === 0}
+                className="group overflow-hidden rounded-2xl border border-slate-200 bg-white"
               >
-                <button
-                  type="button"
-                  onClick={() => toggle(idx)}
-                  className="flex w-full items-center justify-between p-5 text-left transition-colors hover:bg-slate-50/70"
-                  aria-expanded={isOpen}
+                <summary
+                  className="flex min-h-14 cursor-pointer list-none items-center justify-between p-5 text-left marker:hidden hover:bg-slate-50/70 [&::-webkit-details-marker]:hidden"
                 >
                   <span className="text-sm sm:text-base font-bold text-slate-900 pr-4">
                     {faq.question}
                   </span>
                   <ChevronDown
-                    className={`h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 ${
-                      isOpen ? "rotate-180 text-brand-900" : ""
-                    }`}
+                    className="h-5 w-5 shrink-0 text-slate-400 transition-transform group-open:rotate-180 group-open:text-brand-900"
                   />
-                </button>
-                {isOpen && (
-                  <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100">
-                    {faq.answer}
-                  </div>
-                )}
-              </div>
+                </summary>
+                <div className="border-t border-slate-100 px-5 pb-5 pt-3 text-xs leading-relaxed text-slate-600 sm:text-sm">
+                  {faq.answer}
+                </div>
+              </details>
             );
           })}
         </div>

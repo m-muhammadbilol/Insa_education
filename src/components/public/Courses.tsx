@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState } from "react";
+import React from "react";
 import { BookOpen, Award, CheckCircle2, Globe, Calculator, ArrowRight, Sparkles } from "lucide-react";
 
 interface CourseItem {
@@ -98,8 +96,6 @@ export const courseList: CourseItem[] = [
 ];
 
 export default function Courses() {
-  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
-
   return (
     <section id="courses" className="py-16 sm:py-24 bg-slate-50/60 border-y border-slate-100">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -125,7 +121,7 @@ export default function Courses() {
             return (
               <div
                 key={course.id}
-                className="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-sm hover:shadow-md hover:border-brand-200 transition-all group"
+                className="group flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm transition-[border-color,box-shadow] hover:border-brand-200 hover:shadow-md sm:p-7"
               >
                 <div>
                   {/* Top Category & Badge */}

@@ -21,12 +21,12 @@ export async function GET(req: NextRequest) {
 
     let query = getSupabaseAdmin()
       .from("leads")
-      .select("*", { count: "exact" })
+      .select("*")
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (status && status !== "ALL") query = query.eq("status", status);
-    const { data, error, count } = await query;
+    const { data, error } = await query;
     if (error) throw error;
     let leads: Lead[] = (data || []).map(leadFromRow);
 
@@ -46,8 +46,7 @@ export async function GET(req: NextRequest) {
       success: true,
       leads,
       count: leads.length,
-      total: count ?? 0,
-      hasMore: offset + (data?.length ?? 0) < (count ?? 0),
+      hasMore: (data?.length ?? 0) === limit,
     });
   } catch (error: any) {
     console.error("[Admin Leads API] Error:", error.message);

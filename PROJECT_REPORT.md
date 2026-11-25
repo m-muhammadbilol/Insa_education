@@ -26,10 +26,13 @@ Firebase'dagi eski foydalanuvchilar, arizalar, izohlar yoki audit yozuvlari avto
 
 - Ochiq sayt hozirda talabalar uchun login hisobini ochmaydi; kursga qabul bo'yicha ariza (`lead`) qabul qiladi. Arizalar `leads` jadvaliga saqlanadi.
 - Admin va Super Admin bir xil CRM sahifasida `/admin/leads` orqali arizalarni ko'rishi va boshqarishi mumkin. Super Admin uchun qo'shimcha `/admin/superadmin/leads` manzili ham mavjud.
-- Admin API'dagi 100 ta yozuv chegarasi sabab eski ko'rinish yangi arizalarning bir qismini yashirishi mumkin edi. API endi `limit`/`offset` va jami sonni qaytaradi; CRM sahifasi yozuvlarni 100 tadan yuklab, 10,000 gacha bo'lgan arizalarni ko'rsatadi.
+- Admin API'da sahifalash bor. CRM ochilganda bitta so'rov bilan birinchi 100 ariza yuklanadi; qolganlari `Yana 100 ta ariza` tugmasi bilan kerak bo'lganda olinadi.
 - Rozilik checkbox'i bo'sh boshlanadi; ism/familiya serverda tekshirishdan oldin bo'sh joylardan tozalanadi.
 - Telefon maydonlari mobil uchun raqam klaviaturasini va brauzer autofill'ini taklif qiladi.
 - Telefon navigatsiyasida katta bosish maydonlari, screen reader uchun menyu holati va doim ko'rinadigan pastki ariza tugmasi bor; forma maydonlari iPhone'da avtomatik zoom bo'lmasligi uchun kattalashtirildi.
+- Anchor tugmalarni bosganda sahifa darhol kerakli bo'limga o'tadi; global sekin smooth scroll olib tashlandi.
+- 1 MB atrofidagi PNG logotip kichik SVG logotip bilan almashtirildi, FAQ va kurslar interaktivligi native HTML/server renderga o'tkazilib client JavaScript yuklamasi kamaytirildi.
+- Ishlamaydigan til tanlash dropdown'i olib tashlandi (sayt faqat o'zbekcha tarjimaga ega edi); keraksiz blur effektlari ham olib tashlandi.
 - Ishlab turgan lead API arizani bazaga yozadi, rozilikni serverda tekshiradi, keyin Telegram xabarini imkon bo'lsa yuboradi. Jonli saytda yangi test arizasi yuborilmadi, shuning uchun Production end-to-end qabul tasdiqlanmadi.
 
 ## Admin parolini boshqarish

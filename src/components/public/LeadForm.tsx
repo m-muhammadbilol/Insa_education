@@ -104,7 +104,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate aria-busy={isSubmitting}>
           {serverError && (
             <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-800">
               <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
@@ -128,7 +128,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
                 autoCapitalize="words"
                 placeholder="Masalan: Sardor"
                 {...register("firstName")}
-                  className={`min-h-12 w-full rounded-xl border px-3.5 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all sm:text-sm ${
+                className={`min-h-12 w-full rounded-xl border px-3.5 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-colors sm:text-sm ${
                   errors.firstName
                     ? "border-rose-300 focus:border-rose-500 focus:ring-rose-200 bg-rose-50/20"
                     : "border-slate-200 focus:border-brand-900 focus:ring-brand-100"
@@ -153,7 +153,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
                 autoCapitalize="words"
                 placeholder="Masalan: Aliyev"
                 {...register("lastName")}
-                  className={`min-h-12 w-full rounded-xl border px-3.5 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all sm:text-sm ${
+                className={`min-h-12 w-full rounded-xl border px-3.5 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-colors sm:text-sm ${
                   errors.lastName
                     ? "border-rose-300 focus:border-rose-500 focus:ring-rose-200 bg-rose-50/20"
                     : "border-slate-200 focus:border-brand-900 focus:ring-brand-100"
@@ -182,7 +182,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
                 enterKeyHint="next"
                 placeholder="+998 90 123 45 67"
                 {...register("primaryPhone")}
-                  className={`min-h-12 w-full rounded-xl border px-3.5 py-3 text-base text-slate-900 font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all sm:text-sm ${
+                className={`min-h-12 w-full rounded-xl border px-3.5 py-3 text-base text-slate-900 font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-colors sm:text-sm ${
                   errors.primaryPhone
                     ? "border-rose-300 focus:border-rose-500 focus:ring-rose-200 bg-rose-50/20"
                     : "border-slate-200 focus:border-brand-900 focus:ring-brand-100"
@@ -208,7 +208,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
                 enterKeyHint="done"
                 placeholder="+998 99 765 43 21"
                 {...register("secondaryPhone")}
-                className="min-h-12 w-full rounded-xl border border-slate-200 px-3.5 py-3 text-base text-slate-900 font-mono placeholder:text-slate-400 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-all sm:text-sm"
+                className="min-h-12 w-full rounded-xl border border-slate-200 px-3.5 py-3 text-base text-slate-900 font-mono placeholder:text-slate-400 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-colors sm:text-sm"
               />
               {errors.secondaryPhone && (
                 <p className="mt-1 text-xs text-rose-600">{errors.secondaryPhone.message}</p>
@@ -227,7 +227,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
             <select
               id="courseInterest"
               {...register("courseInterest")}
-              className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-base text-slate-900 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-all sm:text-sm"
+              className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-base text-slate-900 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-colors sm:text-sm"
             >
               <option value="IELTS">IELTS (Intensive & Standard)</option>
               <option value="CEFR">CEFR / Multi-level (B1, B2, C1)</option>
@@ -258,7 +258,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl bg-brand-900 py-3.5 px-6 text-sm font-bold text-white shadow-md shadow-brand-900/10 hover:bg-brand-800 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+            className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-900 px-6 py-3.5 text-sm font-bold text-white shadow-md shadow-brand-900/10 transition-colors hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? (
               <>

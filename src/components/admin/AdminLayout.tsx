@@ -149,7 +149,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="flex h-16 items-center gap-3 px-6 border-b border-slate-100">
           <div className="relative h-9 w-9 rounded-xl overflow-hidden shadow-sm">
             <Image
-              src="/assets/insa-mark-photo.png"
+              src="/assets/insa-mark-purple.svg"
               alt="INSA Education"
               fill
               className="object-cover"
@@ -255,7 +255,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="flex items-center gap-2.5">
           <div className="relative h-8 w-8 rounded-lg overflow-hidden">
             <Image
-              src="/assets/insa-mark-photo.png"
+              src="/assets/insa-mark-purple.svg"
               alt="INSA CRM"
               fill
               className="object-cover"
