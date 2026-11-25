@@ -25,16 +25,13 @@ Vercel Dashboard’da `Insa_education` project’ni oching → **Settings → En
 
 ## 3. Birinchi Super Adminni yaratish
 
-Super Admin bootstrap’ini lokal kompyuterdan bir marta bajaring. Repo ichidagi `.env.local` faylida shu Firebase Admin SDK qiymatlari va quyidagi qiymatlar bo‘lsin:
-
-- `BOOTSTRAP_SUPERADMIN_USERNAME=superadmin`
-- `BOOTSTRAP_SUPERADMIN_PASSWORD=superadmin`
+Super Admin bootstrap’ini lokal kompyuterdan bir marta bajaring. Repo ichidagi `.env.local` faylida shu Firebase Admin SDK qiymatlari va `BOOTSTRAP_SUPERADMIN_USERNAME`, `BOOTSTRAP_SUPERADMIN_PASSWORD` bo‘lsin. Bu ignored fayldagi login ma’lumotlarini GitHub’ga qo‘shmang.
 
 Terminalda loyiha papkasiga o‘tib `npm install`, so‘ng `npm run bootstrap` bajaring. Skript endi `.env.local` ni o‘zi o‘qiydi. Bu buyruq Firebase Authentication’da `superadmin` hisobini va Firestore’da profilini yaratadi. Agar Super Admin profili avvaldan bo‘lsa, skript parolni o‘zgartirmaydi va qayta hisob yaratmaydi.
 
 ## 4. Qanday kiriladi
 
-Vercel saytingizdagi `/admin` sahifasini oching. Username: `superadmin`; boshlang‘ich parol: `superadmin`. Birinchi kirishda tizim yangi parol o‘rnatishni talab qiladi. Oddiy admin hisoblarini Super Admin panelining **Adminlar** bo‘limidan yarating; alohida ommaviy ro‘yxatdan o‘tish sahifasi yo‘q.
+Vercel saytingizdagi `/admin` sahifasini oching. Username: `superadmin`; boshlang‘ich parol `.env.local` faylidagi `BOOTSTRAP_SUPERADMIN_PASSWORD` qiymati. Birinchi kirishda tizim yangi parol o‘rnatishni talab qiladi. Oddiy admin hisoblarini Super Admin panelining **Adminlar** bo‘limidan yarating; alohida ommaviy ro‘yxatdan o‘tish sahifasi yo‘q.
 
 ## Koddagi tuzatishlar
 
