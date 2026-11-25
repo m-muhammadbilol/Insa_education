@@ -83,3 +83,14 @@ Supabase migratsiya kodi `master` branch'ga push qilingan (`0fc7d90`). Supabase 
 
 
 - Tekshiruvdan keyingi natija: `npm.cmd run build` muvaffaqiyatli (15 route prerender qilindi); `npm.cmd run test:verify` — 7/7 ssenariy o'tdi; `git diff --check` xatosiz yakunlandi.
+
+## Yangi ariza bildirishnomasi, logo va admin kirishi — 2026-11-25
+
+- Admin va Super Admin menyusidagi `Leadlar Ro'yxati (CRM)` yonida holati `NEW` bo'lgan arizalar soni chiqadi: 1, 2 yoki 3+ (3 va undan ko'p). Panel ochiq turganda sanog'i 15 soniyada va sahifaga qaytilganda qayta olinadi.
+- Hozirgi mahsulotda alohida `USER` login/roli mavjud emas: tashrifchi ariza yuboradi va tasdiq oladi. Jonli ariza badge'i tizimdagi real hisoblar — `ADMIN` hamda `SUPER_ADMIN` uchun ishlaydi.
+- Login, bosh sahifa, footer, admin menyu va favicon'da chizib olingan, yuborilgan logoga mos kelmaydigan SVG belgisi yuborilgan logotipning `insa-mark-photo.png` rasmiga almashtirildi; rasmiy belgi ekranda tiniqroq ko'rinadi.
+- Birinchi kirishdagi vaqtinchalik parolni almashtirgach brauzer yangi parol bilan sessiyani qayta ochadi va foydalanuvchini Admin yoki Super Admin paneliga olib kiradi. Qayta ro'yxatdan o'tish talab qilinmaydi.
+- Login ostida `Parolni unutdingizmi?` havolasi qo'shildi. Username yuborilganda, mos faol Admin uchun Telegram sozlangan umumiy admin chatiga tiklash so'rovi boradi. Javob username bor-yo'qligini oshkor qilmaydi. Super Admin mavjud `Adminlarni boshqarish` sahifasida vaqtinchalik parol o'rnatadi.
+- Xavfsizlik: reset xabari parolni o'z ichiga olmaydi. Vaqtinchalik parol Telegramga jo'natilmasin; Super Admin uni ishonchli shaxsiy kanal orqali adminning o'ziga yetkazib, birinchi kirishda yangilashni talab qilsin.
+- Telegram bildirishnomasi ishlashi uchun Vercel Production'da `TELEGRAM_BOT_TOKEN` va `TELEGRAM_CHAT_ID` sozlangan bo'lishi kerak. Bu sessiyada Vercel sozlamalari ko'rilmadi.
+- Tekshiruv: `npm.cmd run build` muvaffaqiyatli; yangi reset sahifasi va API marshrutlari production build'ga kirdi. Jonli Vercel/Telegram end-to-end reset sinovi bu yerden bajarilmadi.

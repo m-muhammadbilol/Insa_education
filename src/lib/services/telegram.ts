@@ -77,6 +77,31 @@ export async function sendLeadTelegramNotification(
   }
 }
 
+/** Notify the configured admin chat that an account requested a password reset. Never include passwords. */
+export async function sendPasswordResetRequestNotification(username: string): Promise<boolean> {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!botToken || !chatId) return false;
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: `🔐 INSA CRM: <b>${escapeHtml(username)}</b> parolni tiklashni so'radi. Adminlar boshqaruvida vaqtinchalik parol o'rnating. Parolni Telegram orqali yubormang.`,
+        parse_mode: "HTML",
+        disable_web_page_preview: true,
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("[Telegram] Password reset alert failed:", error);
+    return false;
+  }
+}
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")

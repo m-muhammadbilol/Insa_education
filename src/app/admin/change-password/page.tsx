@@ -10,6 +10,7 @@ import { changePasswordSchema, ChangePasswordInput } from "@/lib/validations/aut
 import { authenticatedFetch, getAccessToken, supabase } from "@/lib/supabase/client";
 import { profileFromRow } from "@/lib/supabase/mappers";
 import { UserProfile } from "@/lib/types/profile";
+import { usernameToInternalEmail } from "@/lib/auth/username-mapping";
 import { KeyRound, CheckCircle2, AlertCircle, Loader2, ArrowLeft } from "lucide-react";
 
 export default function ChangePasswordPage() {
@@ -96,10 +97,24 @@ export default function ChangePasswordPage() {
 
       setSuccess(true);
       setTimeout(() => {
+        if (currentUserProfile?.mustChangePassword && currentUserProfile.username) {
+          void (async () => {
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+              email: usernameToInternalEmail(currentUserProfile.username),
+              password: data.newPassword,
+            });
+            if (signInError) {
+              router.replace("/admin?passwordUpdated=1");
+              return;
+            }
+            router.replace(currentUserProfile.role === "SUPER_ADMIN" ? "/admin/superadmin" : "/admin/dashboard");
+          })().catch(() => router.replace("/admin?passwordUpdated=1"));
+          return;
+        }
         if (currentUserProfile?.role === "SUPER_ADMIN") {
-          router.push("/admin/superadmin");
+          router.replace("/admin/superadmin");
         } else {
-          router.push("/admin/dashboard");
+          router.replace("/admin/dashboard");
         }
       }, 1500);
     } catch (err: any) {

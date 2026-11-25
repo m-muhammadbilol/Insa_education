@@ -23,7 +23,7 @@ export default function Navbar() {
         <Link href="/" className="flex items-center gap-3 group">
           <div className="relative h-11 w-11 rounded-xl overflow-hidden shadow-sm transition-transform group-hover:scale-105">
             <Image
-              src="/assets/insa-mark-purple.svg"
+              src="/assets/insa-mark-photo.png"
               alt="INSA Education Logo"
               fill
               className="object-cover"

@@ -129,7 +129,7 @@ export default function AdminLoginPage() {
         <div className="text-center mb-8">
           <div className="relative mx-auto h-14 w-14 rounded-2xl overflow-hidden shadow-md mb-3">
             <Image
-              src="/assets/insa-mark-purple.svg"
+              src="/assets/insa-mark-photo.png"
               alt="INSA Education"
               fill
               className="object-cover"
@@ -239,6 +239,25 @@ export default function AdminLoginPage() {
             )}
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={() => {
+              const usernameField = document.getElementById("username") as HTMLInputElement | null;
+              const username = usernameField?.value.trim();
+              if (!username) {
+                setAuthError("Parolni tiklash so'rovi uchun avval username'ni kiriting.");
+                usernameField?.focus();
+                return;
+              }
+              router.push(`/admin/forgot-password?username=${encodeURIComponent(username)}`);
+            }}
+            className="text-xs font-semibold text-brand-900 underline underline-offset-4"
+          >
+            Parolni unutdingizmi?
+          </button>
+        </div>
 
         <div className="mt-8 border-t border-slate-100 pt-5 text-center text-xs text-slate-400">
           Xavfsiz avtorizatsiya va seans nazorati ta'minlangan

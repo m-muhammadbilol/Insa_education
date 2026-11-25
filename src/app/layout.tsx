@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "INSA Education — Toshkent shahrida IELTS, CEFR, Milliy sertifikat, til va fan kurslari bo'yicha sifatli ta'lim beruvchi zamonaviy o'quv markazi. Mirzo Ulug'bek metrosi yaqinida.",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/assets/insa-mark-photo.png",
     apple: "/assets/insa-mark-photo.png",
   },
 };

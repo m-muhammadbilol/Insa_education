@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -33,6 +33,23 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [newLeadCount, setNewLeadCount] = useState(0);
+
+  const refreshNewLeadCount = useCallback(async () => {
+    try {
+      const token = await getAccessToken();
+      if (!token) return;
+      const response = await fetch("/api/admin/leads/notifications", {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (!response.ok) return;
+      const payload = await response.json();
+      if (payload.success) setNewLeadCount(Number(payload.count) || 0);
+    } catch (error) {
+      console.error("[Admin notifications] Unable to refresh new-lead count:", error);
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -81,6 +98,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       subscription.unsubscribe();
     };
   }, [router]);
+
+  useEffect(() => {
+    if (!profile) return;
+    void refreshNewLeadCount();
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") void refreshNewLeadCount();
+    }, 15000);
+    const onFocus = () => void refreshNewLeadCount();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [profile, refreshNewLeadCount]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -156,7 +187,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="flex h-16 items-center gap-3 px-6 border-b border-slate-100">
           <div className="relative h-9 w-9 rounded-xl overflow-hidden shadow-sm">
             <Image
-              src="/assets/insa-mark-purple.svg"
+              src="/assets/insa-mark-photo.png"
               alt="INSA Education"
               fill
               className="object-cover"
@@ -190,7 +221,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     }`}
                   >
                     <Icon className="h-4 w-4" />
-                    <span>{item.name}</span>
+                    <span className="flex-1">{item.name}</span>
+                    {item.href === "/admin/leads" && newLeadCount > 0 && (
+                      <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-600 px-1.5 py-0.5 text-[10px] font-black leading-none text-white" aria-label={`${newLeadCount} ta yangi ariza`}>
+                        {newLeadCount > 2 ? "3+" : newLeadCount}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
@@ -262,7 +298,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="flex items-center gap-2.5">
           <div className="relative h-8 w-8 rounded-lg overflow-hidden">
             <Image
-              src="/assets/insa-mark-purple.svg"
+              src="/assets/insa-mark-photo.png"
               alt="INSA CRM"
               fill
               className="object-cover"
@@ -290,11 +326,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileNavOpen(false)}
-                className={`block rounded-lg px-3 py-2 text-xs font-bold ${
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-bold ${
                   item.active ? "bg-brand-900 text-white" : "text-slate-700"
                 }`}
               >
-                {item.name}
+                <span className="flex-1">{item.name}</span>
+                {item.href === "/admin/leads" && newLeadCount > 0 && (
+                  <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-600 px-1.5 py-0.5 text-[10px] font-black leading-none text-white" aria-label={`${newLeadCount} ta yangi ariza`}>
+                    {newLeadCount > 2 ? "3+" : newLeadCount}
+                  </span>
+                )}
               </Link>
             ))}
             {isSuperAdmin &&
