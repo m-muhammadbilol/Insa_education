@@ -24,14 +24,21 @@ Firebase'dagi eski foydalanuvchilar, arizalar, izohlar yoki audit yozuvlari avto
 
 ## Hozircha bajarilishi kerak bo'lgan ishlar
 
-1. Supabase loyihasini tanlash yoki yaratish va `supabase/schema.sql` ni SQL Editor'da bajarish.
-2. `.env.example` dagi kerakli qiymatlarni lokal muhitga va Vercel Environment Variables'ga kiritish.
-3. Bootstrap skripti bilan dastlabki Super Adminni yaratish.
-4. Vercel deploy'dan keyin admin login, lead yuborish, admin boshqaruvi va Telegram xabarnomasini tekshirish.
-5. O'zgarishlarni tekshirib, so'ng GitHub'ga commit/push qilish.
+1. Lokal `.env.local` fayliga yangi Supabase URL, publishable key va server-only secret key qiymatlarini qo'shish. `.env.local` GitHub'ga yuborilmasin.
+2. `npm run bootstrap` bilan birinchi Super Adminni yaratish. Skript hisobni `must_change_password` holatida yaratadi; birinchi kirishda parolni yangilash shart.
+3. `/admin` sahifasida superadmin loginini va admin funksiyalarini qo'lda tekshirish.
+4. Telegram xabarnomasi kerak bo'lsa `TELEGRAM_BOT_TOKEN` va `TELEGRAM_CHAT_ID` ni Vercel Production'ga qo'shib, qayta deploy qilish.
 
 ## GitHub
 
 Repo: <https://github.com/m-muhammadbilol/Insa_education>
 
-Koddagi o'zgarishlar va hujjatlar hali ko'rib chiqilib, tekshirilishi kerak. Yangi deploy tasdiqlangan deb hisoblanmaydi.
+Supabase migratsiya kodi `master` branch'ga push qilingan (`0fc7d90`). Supabase schema SQL Editor'da muvaffaqiyatli bajarilgan.
+
+## Vercel deploy holati — 2026-11-25
+
+- Production Environment Variables'ga `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` va server-only `SUPABASE_SECRET_KEY` qo'shildi.
+- Production redeploy `BDDVoZSaWi2jQ4CMynT7qjCpTyCZ` holati `Ready` bo'ldi.
+- Sayt `https://insa-education.vercel.app/` va admin login `https://insa-education.vercel.app/admin` ochilishi ko'rildi.
+- Supabase'da Super Admin akkaunti hali yaratilmagan. Lokal `.env.local` da Supabase qiymatlari yo'q; shuning uchun bootstrap skripti ishga tushirilmagan.
+- Build `Ready` bo'ldi, ammo bu to'liq auth yoki ariza oqimini isbotlamaydi. Auth, ariza va Telegram oqimlarini Super Admin tayyor bo'lgandan so'ng tekshirish kerak.
