@@ -30,12 +30,20 @@ export const changePasswordSchema = z
 
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
-export const createAdminSchema = z.object({
-  username: z
+export const usernameSchema = z
     .string()
+    .trim()
     .min(3, "Foydalanuvchi nomi kamida 3 ta belgidan iborat bo'lishi kerak")
     .max(30, "Foydalanuvchi nomi juda uzun")
-    .regex(/^[a-zA-Z0-9_.-]+$/, "Foydalanuvchi nomida faqat harf, son, _, ., - bo'lishi mumkin"),
+    .regex(/^[a-zA-Z0-9_.-]+$/, "Foydalanuvchi nomida faqat harf, son, _, ., - bo'lishi mumkin");
+
+export const changeUsernameSchema = z.object({
+  username: usernameSchema,
+  currentPassword: z.string().min(1, "Hozirgi parolni kiriting"),
+});
+
+export const createAdminSchema = z.object({
+  username: usernameSchema,
   temporaryPassword: z
     .string()
     .min(8, "Vaqtinchalik parol kamida 8 ta belgidan iborat bo'lishi kerak"),

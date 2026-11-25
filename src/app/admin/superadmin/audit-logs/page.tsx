@@ -85,6 +85,12 @@ export default function SuperAdminAuditLogsPage() {
             RESET_PASSWORD
           </span>
         );
+      case "CHANGE_USERNAME":
+        return (
+          <span className="bg-indigo-50 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded font-bold text-[10px]">
+            CHANGE_USERNAME
+          </span>
+        );
       case "UPDATE_LEAD_STATUS":
         return (
           <span className="bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-bold text-[10px]">

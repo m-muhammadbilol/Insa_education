@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Send, Phone, Clock, ArrowUpRight, ShieldCheck } from "lucide-react";
+import { MapPin, Send, Phone, Clock, ArrowUpRight, Navigation } from "lucide-react";
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -53,10 +53,10 @@ export default function Contact() {
                 <div>
                   <h4 className="text-sm font-bold text-slate-900">Manzilimiz</h4>
                   <p className="text-xs text-slate-600 mt-0.5">
-                    Toshkent shahri, Mirzo Ulug'bek metrosi hududi
+                    Mo'ljal: Mirzo Ulug'bek metro hududi, Toshkent
                   </p>
-                  <span className="text-[11px] text-brand-900 font-semibold">
-                    Metro bekatidan piyoda 3 daqiqa
+                  <span className="text-[11px] text-slate-500">
+                    Aniq ko'cha manzilini Telegram orqali tasdiqlang.
                   </span>
                 </div>
               </div>
@@ -116,69 +116,40 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Right Column: Visual Metro Map Orientation Card */}
+          {/* Right Column: Clear location guidance */}
           <div className="lg:col-span-6">
-            <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-brand-900/5">
-              <div className="mb-6 flex items-center justify-between">
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-lg shadow-brand-900/5 sm:p-8">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-900">
+                  <Navigation className="h-6 w-6" />
+                </div>
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-brand-900">
-                    Lokatsiya sxemasi
-                  </span>
-                  <h3 className="text-xl font-extrabold text-slate-900">
-                    Mirzo Ulug'bek metro hududi
-                  </h3>
-                </div>
-                <div className="h-3 w-3 rounded-full bg-emerald-500 animate-ping" />
-              </div>
-
-              {/* Minimal modern metro diagram visual */}
-              <div className="relative h-64 w-full rounded-2xl bg-gradient-to-br from-slate-900 to-brand-950 p-6 text-white flex flex-col justify-between overflow-hidden shadow-inner">
-                {/* Metro Line Accent */}
-                <div className="absolute top-1/2 left-0 right-0 h-2 bg-rose-500/80 -translate-y-1/2 shadow-lg shadow-rose-500/50" />
-                <div className="absolute top-1/2 left-1/3 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-slate-900 bg-white" />
-                <div className="absolute top-1/2 left-2/3 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white bg-brand-600 shadow-lg shadow-purple-500" />
-
-                <div className="relative z-10 flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] tracking-widest text-slate-400 font-mono uppercase">
-                      Chilonzor Yo'nalishi
-                    </span>
-                    <h5 className="text-sm font-bold text-white">Chilonzor bekati</h5>
-                  </div>
-                  <div className="text-right">
-                    <span className="rounded bg-brand-900 px-2 py-0.5 text-[10px] font-bold text-purple-200">
-                      INSA EDUCATION
-                    </span>
-                    <h5 className="text-sm font-bold text-white mt-1">Mirzo Ulug'bek bekati</h5>
-                  </div>
-                </div>
-
-                <div className="relative z-10 bg-black/40 backdrop-blur-md rounded-xl p-3 border border-white/10 text-xs">
-                  <div className="flex items-center gap-2 text-emerald-400 font-semibold mb-1">
-                    <ShieldCheck className="h-4 w-4" />
-                    <span>Piyoda yurish masofasi: 250 metr</span>
-                  </div>
-                  <p className="text-slate-300 text-[11px]">
-                    Metrodan chiqib asosiy ko'cha bo'ylab 3 daqiqalik qulay yo'l.
+                  <p className="text-xs font-bold uppercase tracking-wider text-brand-900">Manzil bo'yicha mo'ljal</p>
+                  <h3 className="mt-1 text-xl font-extrabold text-slate-900">Mirzo Ulug'bek metro hududi</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                    Saytda aniq ko'cha va uy raqami ko'rsatilmagan. Yo'lga chiqishdan oldin Telegram orqali aniq manzilni so'rang.
                   </p>
                 </div>
               </div>
 
-              <div className="mt-6 flex flex-col sm:flex-row items-center gap-3">
+              <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <a
                   href="https://t.me/INSAadmin"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand-900 py-3 px-4 text-xs font-bold text-white hover:bg-brand-800 transition-colors"
+                  className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-900 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-800"
                 >
                   <Send className="h-4 w-4" />
-                  <span>Telegram orqali lokatsiya so'rash</span>
+                  <span>Aniq manzilni so'rash</span>
                 </a>
                 <a
-                  href="#lead-form"
-                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3 px-4 text-xs font-bold text-slate-800 hover:bg-slate-50 transition-colors"
+                  href="https://www.google.com/maps/search/?api=1&query=INSA+Education+Mirzo+Ulugbek+Tashkent"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-800 transition-colors hover:bg-slate-50"
                 >
-                  <span>Qabulga yozilish</span>
+                  <MapPin className="h-4 w-4" />
+                  <span>Google Maps'da qidirish</span>
                 </a>
               </div>
             </div>

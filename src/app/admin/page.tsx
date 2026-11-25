@@ -97,6 +97,10 @@ export default function AdminLoginPage() {
         setAuthError("Ushbu hisob tizimda faol emas (muzlatilgan).");
       } else if (err.code === "over_request_rate_limit" || err.code === "too_many_requests") {
         setAuthError("Urinishlar soni ko'payib ketdi. Iltimos, birozdan so'ng urinib ko'ring.");
+      } else if (String(err.message || "").toLowerCase().includes("fetch")) {
+        setAuthError(
+          "Supabase serveriga ulanib bo'lmadi. Vercel'dagi Project URL va Publishable key bir xil Supabase loyihasidan ekanini tekshirib, deploy'ni qayta ishga tushiring. Bu parol xatosi bo'lmasligi mumkin."
+        );
       } else {
         setAuthError(err.message || "Tizimga kirishda xatolik yuz berdi.");
       }

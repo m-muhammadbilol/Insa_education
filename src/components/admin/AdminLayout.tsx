@@ -20,6 +20,7 @@ import {
   Loader2,
   ShieldAlert,
   KeyRound,
+  User,
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -130,6 +131,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           href: "/admin/superadmin/admins",
           icon: Users,
           active: pathname === "/admin/superadmin/admins",
+        },
+        {
+          name: "Profil va username",
+          href: "/admin/superadmin/profile",
+          icon: User,
+          active: pathname === "/admin/superadmin/profile",
         },
         {
           name: "Tizim Audit Tarixi",
@@ -267,6 +274,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <button
           onClick={() => setMobileNavOpen(!mobileNavOpen)}
           className="p-2 text-slate-600 hover:text-slate-900"
+          aria-label={mobileNavOpen ? "Menyuni yopish" : "Menyuni ochish"}
+          aria-expanded={mobileNavOpen}
         >
           {mobileNavOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -302,6 +311,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </Link>
               ))}
           </div>
+          <Link
+            href="/"
+            onClick={() => setMobileNavOpen(false)}
+            className="flex min-h-11 items-center justify-between rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-700"
+          >
+            <span>Asosiy saytga o'tish</span>
+            <ExternalLink className="h-4 w-4" />
+          </Link>
           <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
             <span className="text-xs font-bold text-slate-800">
               {profile?.username} ({profile?.role})

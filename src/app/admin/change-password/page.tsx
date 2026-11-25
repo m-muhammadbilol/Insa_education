@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +10,7 @@ import { changePasswordSchema, ChangePasswordInput } from "@/lib/validations/aut
 import { authenticatedFetch, getAccessToken, supabase } from "@/lib/supabase/client";
 import { profileFromRow } from "@/lib/supabase/mappers";
 import { UserProfile } from "@/lib/types/profile";
-import { KeyRound, CheckCircle2, AlertCircle, Loader2, ShieldCheck } from "lucide-react";
+import { KeyRound, CheckCircle2, AlertCircle, Loader2, ArrowLeft } from "lucide-react";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -117,8 +118,19 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 py-12">
-      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 sm:p-10 shadow-xl shadow-brand-900/5">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 py-8 sm:py-12">
+      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-brand-900/5 sm:p-10">
+        <Link
+          href={currentUserProfile?.mustChangePassword
+            ? "/admin"
+            : currentUserProfile?.role === "SUPER_ADMIN"
+            ? "/admin/superadmin"
+            : "/admin/dashboard"}
+          className="mb-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-brand-900"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {currentUserProfile?.mustChangePassword ? "Kirish sahifasiga qaytish" : "Panelga qaytish"}
+        </Link>
         
         {/* Header */}
         <div className="text-center mb-6">

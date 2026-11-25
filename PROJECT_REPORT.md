@@ -42,6 +42,15 @@ Firebase'dagi eski foydalanuvchilar, arizalar, izohlar yoki audit yozuvlari avto
 - Oddiy parol yangilashda server joriy parolni Supabase Auth bilan tekshiradi; birinchi kirishdagi vaqtinchalik parolni almashtirish esa yaroqli login sessiyasi bilan bajariladi.
 - Yangi parol audit jurnaliga yoziladi (parolning o'zi hech qachon log'ga qo'shilmaydi).
 
+## Admin kirish va profil xatolari — 2026-11-25
+
+- `Failed to fetch` login/parol noto'g'ri degani bo'lmasligi mumkin; Supabase serveriga ulanish xatosi sifatida aniq ko'rsatma qo'shildi. Lokal `.env.local` da URL formati HTTPS/Supabase domeniga mos va public key mavjud; Vercel Production qiymatlarini bu sessiyada ko'rib bo'lmadi. Agar xabar yana chiqsa, Vercel'dagi URL va Publishable key aynan bir Supabase loyihasiga qarashini tekshirib, qayta deploy qilish kerak.
+- Admin yaratish formasida vaqtinchalik parol kamida 8 belgidan bo'lishi oldindan tekshiriladi, parol yozilayotganda yashiriladi va ulanish xatosi uchun aniqroq xabar ko'rsatiladi.
+- Super Admin `/admin/superadmin/profile` sahifasida username'ni almashtira oladi. Amalda hozirgi parolni tasdiqlaydi; Auth email, `profiles` username va audit jurnali birga yangilanadi.
+- Parol sahifasiga rolga mos qaytish havolasi qo'shildi; mobil admin menyusida asosiy saytga qaytish havolasi bor.
+- Kontakt bo'limidagi tasdiqlanmagan metro chizmasi, masofa va vaqt olib tashlandi. O'rniga hozir ma'lum bo'lgan mo'ljal, aniq manzilni Telegram'dan so'rash va Google Maps qidiruvi qo'yildi.
+- Skrinshotda vaqtinchalik parol ochiq ko'ringan edi. O'sha parolni yangisiga almashtirish kerak; u hisobotga yoki log'larga ko'chirilmadi.
+
 ## Xavfsizlik tekshiruvi
 
 - Ma'lumotlar bazasi RLS bilan himoyalangan. Lead, audit va tarix jadvallarini brauzer bevosita o'qimaydi; server marshrutlari Supabase server secret bilan murojaat qiladi.
@@ -71,3 +80,6 @@ Supabase migratsiya kodi `master` branch'ga push qilingan (`0fc7d90`). Supabase 
 - Foydalanuvchi `npm.cmd run bootstrap` ni muvaffaqiyatli bajarganini yubordi; Supabase Super Admin hisobi yaratildi va birinchi kirishda vaqtinchalik parolni almashtirish kerak.
 - 2026-11-25: auth sessiyasi, CRM sahifalash, mobil UI, rozilik va Super Admin parolni mustaqil o'zgartirishi yangilandi.
 - Tekshiruv: `npm.cmd run test:verify` — 7/7 ssenariy o'tdi; `npm.cmd run build` — production build muvaffaqiyatli. Jonli Vercel ariza yuborish oqimi qo'lda sinovdan o'tkazilmadi.
+
+
+- Tekshiruvdan keyingi natija: `npm.cmd run build` muvaffaqiyatli (15 route prerender qilindi); `npm.cmd run test:verify` — 7/7 ssenariy o'tdi; `git diff --check` xatosiz yakunlandi.

@@ -19,6 +19,8 @@ import {
   X,
   Copy,
   Check,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 export default function SuperAdminAdminsPage() {
@@ -31,6 +33,7 @@ export default function SuperAdminAdminsPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createSuccessData, setCreateSuccessData] = useState<{
     username: string;
@@ -134,7 +137,10 @@ export default function SuperAdminAdminsPage() {
       });
       fetchAdmins();
     } catch (err: any) {
-      alert(`Xatolik: ${err.message}`);
+      const message = String(err.message || "").toLowerCase().includes("fetch")
+        ? "Serverga ulanib bo'lmadi. Vercel deploy holatini va internetni tekshiring."
+        : err.message;
+      alert(`Xatolik: ${message}`);
     } finally {
       setCreating(false);
     }
@@ -529,13 +535,26 @@ export default function SuperAdminAdminsPage() {
                         Avtomatik generatsiya
                       </button>
                     </div>
-                    <input
-                      type="text"
-                      required
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-mono text-slate-900 focus:border-purple-900 focus:outline-none focus:ring-1 focus:ring-purple-900"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showNewPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        minLength={8}
+                        required
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="min-h-11 w-full rounded-xl border border-slate-200 p-2.5 pr-12 text-sm font-mono text-slate-900 focus:border-purple-900 focus:outline-none focus:ring-1 focus:ring-purple-900"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword((visible) => !visible)}
+                        aria-label={showNewPassword ? "Parolni yashirish" : "Parolni ko'rsatish"}
+                        className="absolute inset-y-0 right-0 flex min-w-11 items-center justify-center text-slate-500"
+                      >
+                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    <p className="mt-1.5 text-[11px] text-slate-500">Kamida 8 belgi. Birinchi kirishda admin parolini almashtiradi.</p>
                   </div>
 
                   <div className="text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-xl">
