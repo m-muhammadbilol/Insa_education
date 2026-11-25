@@ -17,10 +17,12 @@ export const cleanPhoneNumber = (phone: string): string => {
 export const leadSchema = z.object({
   firstName: z
     .string()
+    .trim()
     .min(2, "Ism kamida 2 ta harfdan iborat bo'lishi kerak")
     .max(50, "Ism juda uzun"),
   lastName: z
     .string()
+    .trim()
     .min(2, "Familiya kamida 2 ta harfdan iborat bo'lishi kerak")
     .max(50, "Familiya juda uzun"),
   primaryPhone: z

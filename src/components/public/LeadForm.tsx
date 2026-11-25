@@ -28,7 +28,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
       primaryPhone: "+998 ",
       secondaryPhone: "",
       courseInterest: initialCourse || "IELTS",
-      consent: true,
+      consent: false,
     },
   });
 
@@ -61,7 +61,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
         primaryPhone: "+998 ",
         secondaryPhone: "",
         courseInterest: initialCourse || "IELTS",
-        consent: true,
+        consent: false,
       });
     } catch (err: any) {
       setServerError(err.message || "Tarmoq xatosi. Iltimos aloqani tekshiring.");
@@ -124,6 +124,8 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
               <input
                 id="firstName"
                 type="text"
+                autoComplete="given-name"
+                autoCapitalize="words"
                 placeholder="Masalan: Sardor"
                 {...register("firstName")}
                 className={`w-full rounded-xl border px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
@@ -147,6 +149,8 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
               <input
                 id="lastName"
                 type="text"
+                autoComplete="family-name"
+                autoCapitalize="words"
                 placeholder="Masalan: Aliyev"
                 {...register("lastName")}
                 className={`w-full rounded-xl border px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
@@ -173,6 +177,9 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
               <input
                 id="primaryPhone"
                 type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                enterKeyHint="next"
                 placeholder="+998 90 123 45 67"
                 {...register("primaryPhone")}
                 className={`w-full rounded-xl border px-3.5 py-2.5 text-sm text-slate-900 font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
@@ -196,6 +203,9 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
               <input
                 id="secondaryPhone"
                 type="tel"
+                inputMode="tel"
+                autoComplete="tel-national"
+                enterKeyHint="done"
                 placeholder="+998 99 765 43 21"
                 {...register("secondaryPhone")}
                 className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 font-mono placeholder:text-slate-400 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-all"

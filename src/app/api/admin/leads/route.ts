@@ -14,16 +14,19 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const status = searchParams.get("status");
     const search = searchParams.get("search")?.toLowerCase().trim();
-    const limit = parseInt(searchParams.get("limit") || "50", 10);
+    const requestedLimit = Number.parseInt(searchParams.get("limit") || "50", 10);
+    const requestedOffset = Number.parseInt(searchParams.get("offset") || "0", 10);
+    const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 100) : 50;
+    const offset = Number.isFinite(requestedOffset) ? Math.min(Math.max(requestedOffset, 0), 1000000) : 0;
 
     let query = getSupabaseAdmin()
       .from("leads")
-      .select("*")
+      .select("*", { count: "exact" })
       .order("created_at", { ascending: false })
-      .limit(Math.min(Math.max(limit, 1), 100));
+      .range(offset, offset + limit - 1);
 
     if (status && status !== "ALL") query = query.eq("status", status);
-    const { data, error } = await query;
+    const { data, error, count } = await query;
     if (error) throw error;
     let leads: Lead[] = (data || []).map(leadFromRow);
 
@@ -43,6 +46,8 @@ export async function GET(req: NextRequest) {
       success: true,
       leads,
       count: leads.length,
+      total: count ?? 0,
+      hasMore: offset + (data?.length ?? 0) < (count ?? 0),
     });
   } catch (error: any) {
     console.error("[Admin Leads API] Error:", error.message);

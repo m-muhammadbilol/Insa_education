@@ -22,12 +22,28 @@ Kod Firebase Auth va Firestore o'rniga Supabase Auth/PostgreSQL ishlatadigan qil
 
 Firebase'dagi eski foydalanuvchilar, arizalar, izohlar yoki audit yozuvlari avtomatik ko'chirilmaydi. Hozircha ma'lumotlar migratsiyasi bajarilmadi. Eski tizimdan ma'lumot ko'chirishdan oldin qaysi yozuvlar va qaysi yangi loyihaga o'tishini aniq belgilash kerak.
 
-## Hozircha bajarilishi kerak bo'lgan ishlar
+## Ro'yxatdan o'tish oqimi haqida
 
-1. Lokal `.env.local` fayliga yangi Supabase URL, publishable key va server-only secret key qiymatlarini qo'shish. `.env.local` GitHub'ga yuborilmasin.
-2. `npm run bootstrap` bilan birinchi Super Adminni yaratish. Skript hisobni `must_change_password` holatida yaratadi; birinchi kirishda parolni yangilash shart.
-3. `/admin` sahifasida superadmin loginini va admin funksiyalarini qo'lda tekshirish.
-4. Telegram xabarnomasi kerak bo'lsa `TELEGRAM_BOT_TOKEN` va `TELEGRAM_CHAT_ID` ni Vercel Production'ga qo'shib, qayta deploy qilish.
+- Ochiq sayt hozirda talabalar uchun login hisobini ochmaydi; kursga qabul bo'yicha ariza (`lead`) qabul qiladi. Arizalar `leads` jadvaliga saqlanadi.
+- Admin va Super Admin bir xil CRM sahifasida `/admin/leads` orqali arizalarni ko'rishi va boshqarishi mumkin. Super Admin uchun qo'shimcha `/admin/superadmin/leads` manzili ham mavjud.
+- Admin API'dagi 100 ta yozuv chegarasi sabab eski ko'rinish yangi arizalarning bir qismini yashirishi mumkin edi. API endi `limit`/`offset` va jami sonni qaytaradi; CRM sahifasi yozuvlarni 100 tadan yuklab, 10,000 gacha bo'lgan arizalarni ko'rsatadi.
+- Rozilik checkbox'i bo'sh boshlanadi; ism/familiya serverda tekshirishdan oldin bo'sh joylardan tozalanadi.
+- Telefon maydonlari mobil uchun raqam klaviaturasini va brauzer autofill'ini taklif qiladi.
+
+## Xavfsizlik tekshiruvi
+
+- Ma'lumotlar bazasi RLS bilan himoyalangan. Lead, audit va tarix jadvallarini brauzer bevosita o'qimaydi; server marshrutlari Supabase server secret bilan murojaat qiladi.
+- CRM va Super Admin API'lari Supabase access tokenini tekshiradi; Super Admin amallari roli bo'yicha tekshiriladi. Secret kalit faqat serverda saqlanishi kerak, GitHub'ga qo'shilmasin.
+- Admin API chaqiruvlari token muddati tugashiga yaqin yangilanadi va `401` bo'lsa bir marta yangilab qayta urinadi. Yangilab ham bo'lmasa sessiyani tozalab, qayta kirishni so'raydi.
+- Ochiq ariza endpointidagi takroriy yuborish limiti xotirada saqlanadi. Serverless instansiyalar o'rtasida bu limit umumiy emas; jiddiy spamdan himoya uchun keyinchalik umumiy rate-limit xizmati yoki CAPTCHA qo'shish kerak.
+- Ariza telefon raqami kabi shaxsiy ma'lumotlarni saqlaydi. Admin hisoblarida kuchli, alohida parol ishlatish va Supabase/Vercel secret qiymatlarini oshkor qilmaslik kerak.
+
+## Keyingi qadamlar
+
+1. Bu kod o'zgarishlarini GitHub `master` ga yuborish; Vercel avtomatik deploy qilsa yangi Production holatini tekshirish.
+2. Deploy'dan keyin telefonda ariza jo'natib, Admin hamda Super Admin CRM sahifalarida ko'rinishini tekshirish.
+3. Super Admin bilan audit sahifasini qayta ochib, sessiya xatosi tuzalganini tekshirish.
+4. Telegram xabarnomasi kerak bo'lsa `TELEGRAM_BOT_TOKEN` va `TELEGRAM_CHAT_ID` ni Vercel Production'ga qo'shish.
 
 ## GitHub
 
@@ -40,5 +56,5 @@ Supabase migratsiya kodi `master` branch'ga push qilingan (`0fc7d90`). Supabase 
 - Production Environment Variables'ga `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` va server-only `SUPABASE_SECRET_KEY` qo'shildi.
 - Production redeploy `BDDVoZSaWi2jQ4CMynT7qjCpTyCZ` holati `Ready` bo'ldi.
 - Sayt `https://insa-education.vercel.app/` va admin login `https://insa-education.vercel.app/admin` ochilishi ko'rildi.
-- Supabase'da Super Admin akkaunti hali yaratilmagan. Lokal `.env.local` da Supabase qiymatlari yo'q; shuning uchun bootstrap skripti ishga tushirilmagan.
-- Build `Ready` bo'ldi, ammo bu to'liq auth yoki ariza oqimini isbotlamaydi. Auth, ariza va Telegram oqimlarini Super Admin tayyor bo'lgandan so'ng tekshirish kerak.
+- Foydalanuvchi `npm.cmd run bootstrap` ni muvaffaqiyatli bajarganini yubordi; Supabase Super Admin hisobi yaratildi va birinchi kirishda vaqtinchalik parolni almashtirish kerak.
+- 2026-11-25 kuni koddagi auth sessiya, CRM sahifalash, mobil ariza maydonlari va rozilik holati yangilandi. O'zgarishlar hali deploy'dan keyin amalda tekshirilmagan.

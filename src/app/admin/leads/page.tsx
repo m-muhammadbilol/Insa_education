@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { getAccessToken, supabase } from "@/lib/supabase/client";
+import { authenticatedFetch, getAccessToken, supabase } from "@/lib/supabase/client";
 import { Lead, LeadStatus } from "@/lib/types/lead";
 import LeadStatusBadge from "@/components/admin/LeadStatusBadge";
 import {
@@ -50,25 +50,27 @@ export default function AdminLeadsPage() {
       setLoading(true);
       setError(null);
       const accessToken = await getAccessToken();
-      if (!accessToken) return;
+      if (!accessToken) throw new Error("Sessiya topilmadi. Iltimos, qaytadan kiring.");
 
-      const url =
+      const baseUrl =
         statusFilter === "ALL"
           ? "/api/admin/leads?limit=100"
           : `/api/admin/leads?status=${statusFilter}&limit=100`;
-
-      const res = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || "Leadlarni yuklashda xatolik yuz berdi");
+      const allLeads: Lead[] = [];
+      let offset = 0;
+      let hasMore = true;
+      while (hasMore && offset < 10000) {
+        const res = await authenticatedFetch(`${baseUrl}&offset=${offset}`);
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || "Leadlarni yuklashda xatolik yuz berdi");
+        }
+        allLeads.push(...(data.leads || []));
+        hasMore = Boolean(data.hasMore);
+        offset += 100;
       }
-
-      setLeads(data.leads || []);
+      if (hasMore) throw new Error("Juda ko'p ariza bor. Qidiruv orqali natijani toraytiring.");
+      setLeads(allLeads);
     } catch (err: any) {
       console.error(err);
       setError(err.message);
@@ -80,14 +82,14 @@ export default function AdminLeadsPage() {
   const handleStatusChange = async (leadId: string, newStatus: LeadStatus) => {
     try {
       const accessToken = await getAccessToken();
-      if (!accessToken) return;
+      if (!accessToken) throw new Error("Sessiya topilmadi. Iltimos, qaytadan kiring.");
 
       // Optimistic update
       setLeads((prev) =>
         prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
       );
 
-      const res = await fetch(`/api/admin/leads/${leadId}/status`, {
+      const res = await authenticatedFetch(`/api/admin/leads/${leadId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -112,9 +114,9 @@ export default function AdminLeadsPage() {
     try {
       setSavingNotes(true);
       const accessToken = await getAccessToken();
-      if (!accessToken) return;
+      if (!accessToken) throw new Error("Sessiya topilmadi. Iltimos, qaytadan kiring.");
 
-      const res = await fetch(`/api/admin/leads/${editingNotesLead.id}/notes`, {
+      const res = await authenticatedFetch(`/api/admin/leads/${editingNotesLead.id}/notes`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

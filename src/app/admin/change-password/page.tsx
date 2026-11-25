@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { changePasswordSchema, ChangePasswordInput } from "@/lib/validations/auth";
-import { getAccessToken, supabase } from "@/lib/supabase/client";
+import { authenticatedFetch, getAccessToken, supabase } from "@/lib/supabase/client";
 import { profileFromRow } from "@/lib/supabase/mappers";
 import { UserProfile } from "@/lib/types/profile";
 import { KeyRound, CheckCircle2, AlertCircle, Loader2, ShieldCheck } from "lucide-react";
@@ -83,7 +83,7 @@ export default function ChangePasswordPage() {
         throw new Error("Sessiya topilmadi. Qaytadan kiring.");
       }
 
-      const res = await fetch("/api/auth/change-password", {
+      const res = await authenticatedFetch("/api/auth/change-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

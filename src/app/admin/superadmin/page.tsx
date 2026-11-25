@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Link from "next/link";
-import { getAccessToken, supabase } from "@/lib/supabase/client";
+import { authenticatedFetch, getAccessToken, supabase } from "@/lib/supabase/client";
 import { UserProfile } from "@/lib/types/profile";
 import {
   ShieldCheck,
@@ -31,9 +31,9 @@ export default function SuperAdminOverviewPage() {
     try {
       setLoading(true);
       const accessToken = await getAccessToken();
-      if (!accessToken) return;
+      if (!accessToken) throw new Error("Sessiya topilmadi. Iltimos, qaytadan kiring.");
 
-      const res = await fetch("/api/superadmin/admins", {
+      const res = await authenticatedFetch("/api/superadmin/admins", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

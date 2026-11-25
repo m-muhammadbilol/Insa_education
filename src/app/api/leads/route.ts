@@ -6,12 +6,16 @@ import { Lead } from "@/lib/types/lead";
 
 export const dynamic = "force-dynamic";
 
-// Simple in-memory rate limiting map for basic protection
+// Best-effort per-instance rate limiting; use a shared store for strict limits
+// across serverless instances.
 const submissionTimestamps = new Map<string, number>();
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get("x-forwarded-for") || "unknown-ip";
+    const ip = (req.headers.get("x-vercel-forwarded-for") || req.headers.get("x-forwarded-for") || "unknown-ip")
+      .split(",")[0]
+      .trim()
+      .slice(0, 64);
     const body = await req.json();
 
     // 1. Server-side validation
@@ -32,7 +36,7 @@ export async function POST(req: NextRequest) {
     const cleanedPrimary = cleanPhoneNumber(primaryPhone);
     const cleanedSecondary = secondaryPhone ? cleanPhoneNumber(secondaryPhone) : null;
 
-    // Rate limiting: max 1 submission per 15 seconds per IP or phone
+    // Rate limit duplicate submissions by both client address and phone.
     const rateKey = `${ip}_${cleanedPrimary}`;
     const lastSub = submissionTimestamps.get(rateKey);
     const now = Date.now();
@@ -46,6 +50,16 @@ export async function POST(req: NextRequest) {
       );
     }
     submissionTimestamps.set(rateKey, now);
+    if (submissionTimestamps.size > 5000) {
+      for (const [key, timestamp] of submissionTimestamps) {
+        if (now - timestamp > 15 * 60 * 1000) submissionTimestamps.delete(key);
+      }
+      while (submissionTimestamps.size > 5000) {
+        const oldestKey = submissionTimestamps.keys().next().value;
+        if (!oldestKey) break;
+        submissionTimestamps.delete(oldestKey);
+      }
+    }
 
     const nowIso = new Date().toISOString();
 

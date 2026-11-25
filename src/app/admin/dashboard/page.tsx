@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Link from "next/link";
-import { getAccessToken, supabase } from "@/lib/supabase/client";
+import { authenticatedFetch, getAccessToken, supabase } from "@/lib/supabase/client";
 import { Lead } from "@/lib/types/lead";
 import LeadStatusBadge from "@/components/admin/LeadStatusBadge";
 import {
@@ -32,9 +32,9 @@ export default function AdminDashboardPage() {
     try {
       setLoading(true);
       const accessToken = await getAccessToken();
-      if (!accessToken) return;
+      if (!accessToken) throw new Error("Sessiya topilmadi. Iltimos, qaytadan kiring.");
 
-      const res = await fetch("/api/admin/leads?limit=100", {
+      const res = await authenticatedFetch("/api/admin/leads?limit=100", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

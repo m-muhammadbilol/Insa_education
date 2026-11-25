@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { getAccessToken, supabase } from "@/lib/supabase/client";
+import { authenticatedFetch, getAccessToken, supabase } from "@/lib/supabase/client";
 import { AuditLog } from "@/lib/types/audit";
 import {
   FileText,
@@ -31,9 +31,9 @@ export default function SuperAdminAuditLogsPage() {
       setLoading(true);
       setError(null);
       const accessToken = await getAccessToken();
-      if (!accessToken) return;
+      if (!accessToken) throw new Error("Sessiya topilmadi. Iltimos, qaytadan kiring.");
 
-      const res = await fetch("/api/superadmin/audit-logs?limit=100", {
+      const res = await authenticatedFetch("/api/superadmin/audit-logs?limit=100", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
