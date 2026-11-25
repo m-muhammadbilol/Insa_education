@@ -1,31 +1,44 @@
-# Admin va Super Admin kirishini sozlash
+# Vercel’da Firebase va admin kirishini sozlash
 
-Rasmdagi `auth/api-key-not-valid` xatosi Firebase Web API kaliti noto‘g‘ri yoki namuna qiymat ekanini bildiradi. Bu sababli tizim parolni Firebase’da tekshirish хүртэл хүрэхгүй.
+## 1. Firebase loyihasini tayyorlash
 
-## Firebase sozlamalari
+Firebase Console’da loyiha oching. **Project settings → General → Your apps → Web app** ichidagi Web config qiymatlarini Vercel Environment Variables’ga kiriting:
 
-1. Firebase Console’da loyihani oching: **Project settings → General → Your apps → Web app**.
-2. Web ilova sozlamalaridagi qiymatlarni `.env.local` fayliga kiriting:
-   - `NEXT_PUBLIC_FIREBASE_API_KEY`
-   - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
-   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
-   - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
-   - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
-   - `NEXT_PUBLIC_FIREBASE_APP_ID`
-3. Firebase Authentication’da **Email/Password** kirish usulini yoqing.
-4. Birinchi Super Admin va admin yaratish uchun shu loyihaning Firebase Admin SDK qiymatlarini ham `.env.local` ga kiriting: `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`. Maxfiy private key’ni GitHub’ga yuklamang.
-5. Lokal serverni qayta ishga tushiring. So‘ng `npm run bootstrap` buyrug‘ini bir marta bajaring.
+- `NEXT_PUBLIC_FIREBASE_API_KEY`
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+- `NEXT_PUBLIC_FIREBASE_APP_ID`
 
-Lokal `.env.local` fayliga so‘ralgan `superadmin` username va paroli qo‘yildi. Bootstrap orqali yaratilgan Super Admin birinchi kirishda parolni yangilashi shart. Agar bazada allaqachon Super Admin bo‘lsa, bootstrap xavfsizlik uchun yangi hisob yaratmaydi.
+Firebase Authentication → Sign-in method’dan **Email/Password** usulini yoqing. Firebase Console’da Cloud Firestore’ni ham yarating.
 
-Oddiy admin hisoblari ochiq ro‘yxatdan o‘tmaydi: Super Admin tizimga kirgach, **Adminlar** bo‘limidan yaratadi.
+## 2. Vercel sozlamalari
 
-## Sayt hostingda turgan bo‘lsa
+Vercel Dashboard’da `Insa_education` project’ni oching → **Settings → Environment Variables**. Yuqoridagi 6 ta Web qiymat bilan birga quyidagi server qiymatlarini ham Production uchun qo‘shing (Preview’dan ham foydalanayotgan bo‘lsangiz, Preview’ni ham belgilang):
 
-Vercel yoki boshqa hosting sozlamalarida yuqoridagi Firebase qiymatlarini **Environment Variables** bo‘limiga ham kiriting. `NEXT_PUBLIC_` bilan boshlanadigan qiymatlar build vaqtida ishlatiladi, shuning uchun ularni o‘zgartirgach saytni qayta deploy qiling. Server Admin SDK kalitlarini maxfiy environment variable sifatida saqlang.
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_CLIENT_EMAIL`
+- `FIREBASE_PRIVATE_KEY`
 
-## Kodga kiritilgan o‘zgarishlar
+`FIREBASE_PRIVATE_KEY` — Firebase service account private key. Uni GitHub’ga yoki chatga yubormang; faqat Vercel’dagi maxfiy Environment Variable sifatida kiriting. Vercel’da qiymatlarni saqlagandan keyin **Deployments → Redeploy** qiling. Yangi environment qiymatlari faqat keyingi deployment’da ishlaydi.
 
-- Soxta demo Firebase qiymatlari olib tashlandi.
-- Login sahifasida noto‘g‘ri yoki yo‘q API key uchun tushunarli xabar ko‘rsatiladi.
-- Bootstrap yaratgan Super Admin birinchi kirishda vaqtinchalik parolni almashtiradi.
+## 3. Birinchi Super Adminni yaratish
+
+Super Admin bootstrap’ini lokal kompyuterdan bir marta bajaring. Repo ichidagi `.env.local` faylida shu Firebase Admin SDK qiymatlari va quyidagi qiymatlar bo‘lsin:
+
+- `BOOTSTRAP_SUPERADMIN_USERNAME=superadmin`
+- `BOOTSTRAP_SUPERADMIN_PASSWORD=superadmin`
+
+Terminalda loyiha papkasiga o‘tib `npm install`, so‘ng `npm run bootstrap` bajaring. Skript endi `.env.local` ni o‘zi o‘qiydi. Bu buyruq Firebase Authentication’da `superadmin` hisobini va Firestore’da profilini yaratadi. Agar Super Admin profili avvaldan bo‘lsa, skript parolni o‘zgartirmaydi va qayta hisob yaratmaydi.
+
+## 4. Qanday kiriladi
+
+Vercel saytingizdagi `/admin` sahifasini oching. Username: `superadmin`; boshlang‘ich parol: `superadmin`. Birinchi kirishda tizim yangi parol o‘rnatishni talab qiladi. Oddiy admin hisoblarini Super Admin panelining **Adminlar** bo‘limidan yarating; alohida ommaviy ro‘yxatdan o‘tish sahifasi yo‘q.
+
+## Koddagi tuzatishlar
+
+- Demo Firebase client fallback’lari olib tashlandi; noto‘g‘ri Web API key uchun aniq xabar ko‘rsatiladi.
+- Server API’lar haqiqiy Firebase Admin SDK sozlamalari bo‘lmasa demo loyihaga ulanmaydi, aniq sozlama xatosi beradi.
+- `npm run bootstrap` `.env.local` faylini o‘qiydi.
+- Bootstrap Super Admin birinchi kirishda parolini yangilashga majbur qiladi.

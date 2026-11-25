@@ -9,6 +9,8 @@
  * 5. Uses deterministic internal email mapping with Firebase Auth.
  */
 
+require("@next/env").loadEnvConfig(process.cwd());
+
 const admin = require("firebase-admin");
 
 function formatPrivateKey(key) {

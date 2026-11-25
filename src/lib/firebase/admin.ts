@@ -19,20 +19,19 @@ export function getAdminApp(): App {
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey = formatPrivateKey(process.env.FIREBASE_PRIVATE_KEY);
 
-  if (projectId && clientEmail && privateKey) {
-    adminApp = initializeApp({
-      credential: cert({
-        projectId,
-        clientEmail,
-        privateKey,
-      }),
-    });
-  } else {
-    // Fallback initialization for demo/build environments
-    adminApp = initializeApp({
-      projectId: projectId || "insa-education-demo",
-    });
+  if (!projectId || !clientEmail || !privateKey) {
+    throw new Error(
+      "FIREBASE_ADMIN_CONFIG_MISSING: Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY."
+    );
   }
+
+  adminApp = initializeApp({
+    credential: cert({
+      projectId,
+      clientEmail,
+      privateKey,
+    }),
+  });
 
   return adminApp;
 }
