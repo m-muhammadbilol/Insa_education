@@ -307,7 +307,7 @@ export default function AdminLeadsPage() {
                 setPage(1);
               }}
               placeholder="Ism, familiya, telefon raqami yoki kurs bo'yicha qidirish..."
-              className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              className="w-full min-w-0 rounded-xl border border-slate-200 py-2.5 pl-10 pr-3.5 text-base sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100"
             />
           </div>
 
@@ -319,7 +319,7 @@ export default function AdminLeadsPage() {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 text-xs sm:text-sm font-semibold text-slate-800 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              className="w-full min-w-0 rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 text-base sm:text-sm font-semibold text-slate-800 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100"
             >
               <option value="ALL">Barcha holatlar (Jami)</option>
               <option value="NEW">Yangi (NEW)</option>
@@ -346,7 +346,7 @@ export default function AdminLeadsPage() {
                 : "Qidiruv yoki filtr bo'yicha hech qanday ariza topilmadi."}
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="hidden max-w-full overflow-x-auto xl:block">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 text-slate-500 uppercase font-bold tracking-wider border-b border-slate-100">
                   <tr>
@@ -469,6 +469,58 @@ export default function AdminLeadsPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {!loading && filteredLeads.length > 0 && (
+            <div className="grid min-w-0 grid-cols-1 gap-3 p-3 xl:hidden">
+              {paginatedLeads.map((lead) => (
+                <article key={lead.id} className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h2 className="break-words text-sm font-extrabold text-slate-900">{lead.firstName} {lead.lastName}</h2>
+                      <p className="mt-1 break-words text-xs font-semibold text-brand-900">{lead.courseInterest || "Kurs belgilanmagan"}</p>
+                    </div>
+                    <span className="shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">
+                      {new Date(lead.createdAt).toLocaleDateString("uz-UZ", { day: "2-digit", month: "short" })}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 space-y-2 border-t border-slate-100 pt-3 text-xs">
+                    <a href={`tel:${lead.primaryPhone}`} className="flex min-h-10 min-w-0 items-center gap-2 break-all rounded-lg bg-purple-50 px-3 font-bold text-brand-900">
+                      <Phone className="h-4 w-4 shrink-0" /> {lead.primaryPhone}
+                    </a>
+                    {lead.secondaryPhone && (
+                      <a href={`tel:${lead.secondaryPhone}`} className="block min-h-10 break-all rounded-lg bg-slate-50 px-3 py-3 font-medium text-slate-700">
+                        Qo'shimcha: {lead.secondaryPhone}
+                      </a>
+                    )}
+                  </div>
+
+                  <label className="mt-3 block text-[10px] font-bold uppercase tracking-wide text-slate-500" htmlFor={`lead-status-${lead.id}`}>Ariza holati</label>
+                  <select
+                    id={`lead-status-${lead.id}`}
+                    value={lead.status}
+                    onChange={(event) => handleStatusChange(lead.id, event.target.value as LeadStatus)}
+                    className="mt-1 min-h-11 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-800 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                  >
+                    <option value="NEW">Yangi (NEW)</option>
+                    <option value="CONTACTED">Bog'lanildi (CONTACTED)</option>
+                    <option value="INTERESTED">Qiziqmoqda (INTERESTED)</option>
+                    <option value="ENROLLED">Yozildi (ENROLLED)</option>
+                    <option value="NOT_INTERESTED">Rad etildi (NOT_INTERESTED)</option>
+                  </select>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
+                    <button type="button" onClick={() => { setEditingNotesLead(lead); setNotesValue(lead.internalNotes || ""); }} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 px-2 text-xs font-bold text-slate-700">
+                      <FileEdit className="h-4 w-4" /> Izoh
+                    </button>
+                    <button type="button" onClick={() => setViewingLead(lead)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 px-2 text-xs font-bold text-slate-700">
+                      <Eye className="h-4 w-4" /> Batafsil
+                    </button>
+                  </div>
+                </article>
+              ))}
             </div>
           )}
 

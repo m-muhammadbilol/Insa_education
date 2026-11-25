@@ -104,3 +104,10 @@ Supabase migratsiya kodi `master` branch'ga push qilingan (`0fc7d90`). Supabase 
 - Freeze/reset API'lardagi noto'g'ri `auth.admin.signOut(userId, "global")` chaqiruvi olib tashlandi: bu metod user UUID emas, JWT talab qiladi. Muzlatilgan hisobning himoyalangan API so'rovlari profil statusi orqali rad etiladi. Resetdan keyin `must_change_password=true` bo'ladi va parolini yangilamaguncha boshqa API marshrutlari bloklanadi.
 - Brauzerdagi token yordamchisi JWT uch segmentli ekanini tekshiradi; noto'g'ri yoki eskirgan token bo'lsa session refresh qiladi, refresh ham yaroqsiz bo'lsa lokal sessiyani tozalab, qayta kirish xabarini beradi. Bu muzlatish oynasidagi `invalid JWT` xatosini bartaraf etadi.
 - Tekshiruv: `npm.cmd run build` muvaffaqiyatli; yangi Super Admin ariza o'chirish API'lari build marshrutlarida mavjud. `git diff --check` xatosiz.
+
+## CRM jadvalining tor ekranlarga moslanishi — 2026-11-25
+
+- Tor oynalarda CRM jadvali kengligi sabab ustunlar ekran chetidan kesilib qolmasligi uchun xl breakpoint'gacha jadval o'rniga mobil kartalar ko'rsatiladi. Kartalarda ism, kurs, ariza sanasi, bosiladigan telefon, status tanlash, izoh va tafsilot amallari bor.
+- Keng ekranlarda mavjud to'liq jadval ko'rinishi saqlandi; u o'z konteynerida gorizontal suriladi.
+- Admin asosiy kontentiga `min-w-0` va gorizontal overflow cheklovi qo'shildi, qidiruv/filter maydonlari mobil kengligiga mos va iPhone'da avtomatik zoom bo'lmaydigan kattalikda qilindi.
+- Tekshiruv: production build bajarildi.

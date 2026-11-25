@@ -179,7 +179,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     : [];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+    <div className="min-h-screen w-full overflow-x-hidden bg-slate-50 flex flex-col md:flex-row">
       {/* Sidebar for Desktop */}
       <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r border-slate-200 bg-white">
         
@@ -376,8 +376,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 md:pl-64 min-h-screen">
-        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <main className="min-w-0 w-full flex-1 md:pl-64 min-h-screen">
+        <div className="min-w-0 w-full p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto">
           {children}
         </div>
       </main>
