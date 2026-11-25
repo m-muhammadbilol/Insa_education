@@ -94,3 +94,13 @@ Supabase migratsiya kodi `master` branch'ga push qilingan (`0fc7d90`). Supabase 
 - Xavfsizlik: reset xabari parolni o'z ichiga olmaydi. Vaqtinchalik parol Telegramga jo'natilmasin; Super Admin uni ishonchli shaxsiy kanal orqali adminning o'ziga yetkazib, birinchi kirishda yangilashni talab qilsin.
 - Telegram bildirishnomasi ishlashi uchun Vercel Production'da `TELEGRAM_BOT_TOKEN` va `TELEGRAM_CHAT_ID` sozlangan bo'lishi kerak. Bu sessiyada Vercel sozlamalari ko'rilmadi.
 - Tekshiruv: `npm.cmd run build` muvaffaqiyatli; yangi reset sahifasi va API marshrutlari production build'ga kirdi. Jonli Vercel/Telegram end-to-end reset sinovi bu yerden bajarilmadi.
+
+## Sinov arizalarini tozalash va Super Admin o'chirish nazorati — 2026-11-25
+
+- Foydalanuvchining aniq iltimosiga binoan Supabase `leads` jadvali tekshirildi: 3 ta sinov arizasi bor edi. Uchchalasi o'chirildi va qayta sanalganda 0 ta qoldi. Bog'langan `lead_status_history` yozuvlari FK `ON DELETE CASCADE` bilan o'chdi; `profiles` va avvalgi audit yozuvlari saqlandi.
+- Super Admin CRM yo'li `/admin/superadmin/leads` dagi yopiq `Xavfli amallar` bo'limida barcha arizalarni tozalash boshqaruvi bor. Ishlatishdan oldin `BARCHA ARIZALARNI O'CHIRISH` iborasini qo'lda kiritish kerak; amal audit jurnaliga yoziladi.
+- Bitta arizani o'chirish ham faqat Super Admin CRM yo'lida ko'rinadi: avval ariza tafsilotlarini ochish, so'ng alohida tasdiqlash oynasida tasdiqlash kerak. `ADMIN` roli API darajasida ham rad etiladi. Har bir o'chirish auditga yoziladi; bog'liq status tarixi cascade orqali ketadi.
+- Vaqtinchalik parol oynasi ochilganda endi tasodifiy parol avtomatik yaratilmaydi. Yangi parolni alohida tugma bilan yaratish, so'ng aynan `Parolni Yangilash` tugmasini bosish kerak; X/Yopish/Bekor qilish tugmalari API'ga murojaat qilmaydi. Parol generatori `crypto.getRandomValues` ishlatadi.
+- Freeze/reset API'lardagi noto'g'ri `auth.admin.signOut(userId, "global")` chaqiruvi olib tashlandi: bu metod user UUID emas, JWT talab qiladi. Muzlatilgan hisobning himoyalangan API so'rovlari profil statusi orqali rad etiladi. Resetdan keyin `must_change_password=true` bo'ladi va parolini yangilamaguncha boshqa API marshrutlari bloklanadi.
+- Brauzerdagi token yordamchisi JWT uch segmentli ekanini tekshiradi; noto'g'ri yoki eskirgan token bo'lsa session refresh qiladi, refresh ham yaroqsiz bo'lsa lokal sessiyani tozalab, qayta kirish xabarini beradi. Bu muzlatish oynasidagi `invalid JWT` xatosini bartaraf etadi.
+- Tekshiruv: `npm.cmd run build` muvaffaqiyatli; yangi Super Admin ariza o'chirish API'lari build marshrutlarida mavjud. `git diff --check` xatosiz.

@@ -44,9 +44,6 @@ export async function POST(
     });
     if (passwordError) throw passwordError;
 
-    const { error: signOutError } = await supabase.auth.admin.signOut(targetUid, "global");
-    if (signOutError) throw signOutError;
-
     const { error: updateError } = await supabase
       .from("profiles")
       .update({ must_change_password: true, updated_at: nowIso })

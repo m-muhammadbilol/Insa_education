@@ -8,7 +8,7 @@ import { changePasswordSchema } from "@/lib/validations/auth";
 export async function POST(req: NextRequest) {
   try {
     // Authenticate the user (any role whose token is valid and active)
-    const { uid, email, profile } = await authenticateRequest();
+    const { uid, email, profile } = await authenticateRequest(undefined, { allowMustChangePassword: true });
 
     const body = await req.json();
     const parsed = changePasswordSchema.safeParse(body);

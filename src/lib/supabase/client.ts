@@ -13,6 +13,22 @@ export const supabase = createClient(
   { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
 );
 
+function isWellFormedJwt(token: string | null | undefined): token is string {
+  if (!token) return false;
+  const segments = token.split(".");
+  return segments.length === 3 && segments.every((segment) => /^[A-Za-z0-9_-]+$/.test(segment));
+}
+
+async function refreshValidSession() {
+  const { data, error } = await supabase.auth.refreshSession();
+  const token = data.session?.access_token;
+  if (error || !isWellFormedJwt(token)) {
+    await supabase.auth.signOut();
+    throw new Error("Sessiya yaroqsiz yoki eskirgan. Qaytadan tizimga kiring.");
+  }
+  return token;
+}
+
 export async function getAccessToken(): Promise<string | null> {
   const { data, error } = await supabase.auth.getSession();
   if (error) throw error;
@@ -20,13 +36,12 @@ export async function getAccessToken(): Promise<string | null> {
   if (!session) return null;
 
   // Refresh shortly before expiry so mobile pages do not race an expired token.
-  if ((session.expires_at ?? 0) <= Math.floor(Date.now() / 1000) + 30) {
-    const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
-    if (refreshError) throw refreshError;
-    session = refreshed.session;
+  if (!isWellFormedJwt(session.access_token) || (session.expires_at ?? 0) <= Math.floor(Date.now() / 1000) + 30) {
+    const token = await refreshValidSession();
+    return token;
   }
 
-  return session?.access_token ?? null;
+  return session.access_token;
 }
 
 /** Send an authenticated API request and refresh/retry once after a 401. */
@@ -46,17 +61,11 @@ export async function authenticatedFetch(
   let response = await send(token);
   if (response.status !== 401) return response;
 
-  const { data, error } = await supabase.auth.refreshSession();
-  if (error || !data.session?.access_token) {
-    await supabase.auth.signOut();
-    throw new Error("Sessiya eskirgan. Iltimos, qaytadan kiring.");
-  }
-
-  token = data.session.access_token;
+  token = await refreshValidSession();
   response = await send(token);
   if (response.status === 401) {
     await supabase.auth.signOut();
-    throw new Error("Sessiyani tekshirib bo'lmadi. Iltimos, qaytadan kiring.");
+    throw new Error("Sessiya yaroqsiz. Qaytadan tizimga kiring.");
   }
   return response;
 }

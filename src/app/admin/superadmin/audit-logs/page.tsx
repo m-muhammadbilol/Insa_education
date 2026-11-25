@@ -91,6 +91,13 @@ export default function SuperAdminAuditLogsPage() {
             CHANGE_USERNAME
           </span>
         );
+      case "DELETE_LEAD":
+      case "DELETE_ALL_LEADS":
+        return (
+          <span className="bg-rose-100 text-rose-900 border border-rose-300 px-2 py-0.5 rounded font-bold text-[10px]">
+            {action}
+          </span>
+        );
       case "UPDATE_LEAD_STATUS":
         return (
           <span className="bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-bold text-[10px]">

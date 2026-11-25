@@ -60,11 +60,6 @@ export async function PATCH(
       .update({ status: newStatus, updated_at: nowIso })
       .eq("uid", targetUid);
     if (updateError) throw updateError;
-    if (actionType === "FREEZE") {
-      const { error: signOutError } = await supabase.auth.admin.signOut(targetUid, "global");
-      if (signOutError) throw signOutError;
-    }
-
     const { error: auditError } = await supabase.from("audit_logs").insert(auditToRow({
       actorUid: actor.uid,
       actorRole: actor.role,
@@ -84,7 +79,7 @@ export async function PATCH(
       success: true,
       message:
         actionType === "FREEZE"
-          ? "Administrator hisobi muvaffaqiyatli muzlatildi va sessiyalari bekor qilindi"
+          ? "Administrator hisobi muzlatildi; himoyalangan API'larga kirishi bloklandi"
           : "Administrator hisobi muvaffaqiyatli faollashtirildi",
       status: newStatus,
     });

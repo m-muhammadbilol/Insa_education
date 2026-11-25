@@ -11,11 +11,12 @@ export interface AuthenticatedUser {
 
 /**
  * Verifies the Supabase access token from the Authorization header (Bearer token).
- * Validates that the account exists in the profiles table and is ACTIVE,
- * and matches the required role.
+ * Validates that the account exists, is ACTIVE, has changed any temporary
+ * password, and matches the required role.
  */
 export async function authenticateRequest(
-  requiredRole?: UserRole
+  requiredRole?: UserRole,
+  options: { allowMustChangePassword?: boolean } = {}
 ): Promise<AuthenticatedUser> {
   const headersList = headers();
   const authHeader = headersList.get("authorization");
@@ -52,6 +53,10 @@ export async function authenticateRequest(
   // Verify status is ACTIVE
   if (profile.status !== "ACTIVE") {
     throw new Error("ACCOUNT_FROZEN: Hisob vaqtincha muzlatilgan. Ma'muriyatga murojaat qiling.");
+  }
+
+  if (profile.mustChangePassword && !options.allowMustChangePassword) {
+    throw new Error("FORBIDDEN: PASSWORD_CHANGE_REQUIRED — davom etish uchun vaqtinchalik parolni almashtiring.");
   }
 
   // Verify required role

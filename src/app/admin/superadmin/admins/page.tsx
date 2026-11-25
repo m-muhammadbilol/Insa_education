@@ -96,8 +96,10 @@ export default function SuperAdminAdminsPage() {
   const generateRandomPassword = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
     let pass = "";
-    for (let i = 0; i < 12; i++) {
-      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    const randomValues = new Uint32Array(12);
+    window.crypto.getRandomValues(randomValues);
+    for (let i = 0; i < randomValues.length; i++) {
+      pass += chars.charAt(randomValues[i] % chars.length);
     }
     return pass;
   };
@@ -265,7 +267,7 @@ export default function SuperAdminAdminsPage() {
               Administratorlarni Boshqarish (CRUD)
             </h1>
             <p className="text-xs text-slate-500 mt-1">
-              Xodimlar hisobini yaratish, vaqtinchalik parol berish, muzlatish va sessiyalarni bekor qilish
+              Xodimlar hisobini yaratish, vaqtinchalik parol berish va muzlatish
             </p>
           </div>
 
@@ -388,9 +390,10 @@ export default function SuperAdminAdminsPage() {
                             {/* Reset Password */}
                             {!isSuper && (
                               <button
+                                type="button"
                                 onClick={() => {
                                   setResetModalAdmin(adm);
-                                  setResetTemporaryPassword(generateRandomPassword());
+                                  setResetTemporaryPassword("");
                                   setResetSuccessPassword(null);
                                 }}
                                 className="p-1.5 rounded-lg text-slate-500 hover:text-purple-900 hover:bg-purple-50"
@@ -403,6 +406,7 @@ export default function SuperAdminAdminsPage() {
                             {/* Freeze / Unfreeze Action */}
                             {!isSuper && (
                               <button
+                                type="button"
                                 onClick={() =>
                                   setFreezeModalData({
                                     admin: adm,
@@ -613,7 +617,7 @@ export default function SuperAdminAdminsPage() {
               <div className="text-xs text-slate-600 leading-relaxed mb-6">
                 {freezeModalData.action === "FREEZE" ? (
                   <p>
-                    Ushbu admin hisobini muzlatish darhol uning barcha <strong>Supabase Auth sessiyalarini bekor qiladi</strong>, ochiq sessiyalarini uzadi va himoyalangan API'larga kirishini to'xtatadi. Tasdiqlaysizmi?
+                    Ushbu admin muzlatilgach himoyalangan API'lar undan foydalanishga darhol ruxsat bermaydi. Qayta kirish uchun hisobni faollashtirish kerak. Tasdiqlaysizmi?
                   </p>
                 ) : (
                   <p>
@@ -624,12 +628,14 @@ export default function SuperAdminAdminsPage() {
 
               <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
                 <button
+                  type="button"
                   onClick={() => setFreezeModalData(null)}
                   className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                 >
                   Bekor qilish
                 </button>
                 <button
+                  type="button"
                   onClick={handleConfirmFreeze}
                   disabled={freezing}
                   className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-white disabled:opacity-50 ${
@@ -656,6 +662,7 @@ export default function SuperAdminAdminsPage() {
                   <span>Vaqtinchalik Parolni Yangilash</span>
                 </h3>
                 <button
+                  type="button"
                   onClick={() => setResetModalAdmin(null)}
                   className="text-slate-400 hover:text-slate-600"
                 >
@@ -680,6 +687,7 @@ export default function SuperAdminAdminsPage() {
                   </div>
 
                   <button
+                  type="button"
                     onClick={() => setResetModalAdmin(null)}
                     className="w-full rounded-xl bg-purple-900 py-2.5 text-xs font-bold text-white hover:bg-purple-800"
                   >
@@ -689,7 +697,7 @@ export default function SuperAdminAdminsPage() {
               ) : (
                 <div className="py-4 space-y-4">
                   <p className="text-xs text-slate-600">
-                    Admin <strong>{resetModalAdmin.username}</strong> uchun yangi vaqtinchalik parol o'rnatiladi va joriy sessiyalari bekor qilinadi.
+                    Admin <strong>{resetModalAdmin.username}</strong> uchun vaqtinchalik parol o'rnatiladi. Parolni faqat quyidagi tugma orqali tasdiqlasangiz saqlanadi; oynani yopish hisobga ta'sir qilmaydi.
                   </p>
 
                   <div>
@@ -697,23 +705,34 @@ export default function SuperAdminAdminsPage() {
                       Yangi Vaqtinchalik Parol
                     </label>
                     <input
-                      type="text"
+                      type="password"
+                      autoComplete="new-password"
+                      minLength={8}
                       value={resetTemporaryPassword}
                       onChange={(e) => setResetTemporaryPassword(e.target.value)}
                       className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-mono text-slate-900 focus:border-purple-900 focus:outline-none focus:ring-1 focus:ring-purple-900"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setResetTemporaryPassword(generateRandomPassword())}
+                      className="mt-2 min-h-10 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      Xavfsiz tasodifiy parol yaratish
+                    </button>
                   </div>
 
                   <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                     <button
+                      type="button"
                       onClick={() => setResetModalAdmin(null)}
                       className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                     >
                       Bekor qilish
                     </button>
                     <button
+                      type="button"
                       onClick={handleConfirmResetPassword}
-                      disabled={resetting}
+                      disabled={resetting || resetTemporaryPassword.trim().length < 8}
                       className="flex items-center gap-1.5 rounded-xl bg-purple-900 px-4 py-2 text-xs font-bold text-white hover:bg-purple-800 disabled:opacity-50"
                     >
                       {resetting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { authenticatedFetch, getAccessToken, supabase } from "@/lib/supabase/client";
 import { Lead, LeadStatus } from "@/lib/types/lead";
@@ -20,10 +21,15 @@ import {
   X,
   Clock,
   Sparkles,
+  Trash2,
+  ShieldAlert,
 } from "lucide-react";
 
 export default function AdminLeadsPage() {
+  const pathname = usePathname();
+  const isSuperAdminLeadsPage = pathname === "/admin/superadmin/leads";
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMoreLeads, setHasMoreLeads] = useState(false);
@@ -43,10 +49,27 @@ export default function AdminLeadsPage() {
 
   // Selected lead for Details Modal
   const [viewingLead, setViewingLead] = useState<Lead | null>(null);
+  const [leadToDelete, setLeadToDelete] = useState<Lead | null>(null);
+  const [deletingLead, setDeletingLead] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeletePhrase, setBulkDeletePhrase] = useState("");
+  const [deletingAllLeads, setDeletingAllLeads] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLeads();
   }, [statusFilter]);
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user.id) return;
+      const { data } = await supabase.from("profiles").select("role").eq("uid", session.user.id).maybeSingle();
+      if (active) setIsSuperAdmin(data?.role === "SUPER_ADMIN");
+    })();
+    return () => { active = false; };
+  }, []);
 
   const fetchLeads = async () => {
     try {
@@ -175,6 +198,49 @@ export default function AdminLeadsPage() {
     }
   };
 
+  const handleDeleteLead = async () => {
+    if (!leadToDelete) return;
+    try {
+      setDeletingLead(true);
+      const response = await authenticatedFetch(`/api/superadmin/leads/${leadToDelete.id}`, { method: "DELETE" });
+      const payload = await response.json();
+      if (!response.ok || !payload.success) throw new Error(payload.message || "Arizani o'chirib bo'lmadi.");
+      setLeads((current) => current.filter((lead) => lead.id !== leadToDelete.id));
+      setViewingLead(null);
+      setDeleteMessage("Ariza o'chirildi.");
+      setLeadToDelete(null);
+    } catch (error: any) {
+      setDeleteMessage(error.message || "Arizani o'chirib bo'lmadi.");
+    } finally {
+      setDeletingLead(false);
+    }
+  };
+
+  const handleDeleteAllLeads = async () => {
+    if (bulkDeletePhrase !== "BARCHA ARIZALARNI O'CHIRISH") return;
+    try {
+      setDeletingAllLeads(true);
+      const response = await authenticatedFetch("/api/superadmin/leads", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmPhrase: bulkDeletePhrase }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.success) throw new Error(payload.message || "Arizalarni tozalab bo'lmadi.");
+      setLeads([]);
+      setHasMoreLeads(false);
+      setNextOffset(0);
+      setPage(1);
+      setBulkDeleteOpen(false);
+      setBulkDeletePhrase("");
+      setDeleteMessage(`${payload.deleted} ta ariza o'chirildi.`);
+    } catch (error: any) {
+      setDeleteMessage(error.message || "Arizalarni tozalab bo'lmadi.");
+    } finally {
+      setDeletingAllLeads(false);
+    }
+  };
+
   // Client filtering by search term (name, phone, course)
   const filteredLeads = leads.filter((lead) => {
     const term = searchTerm.toLowerCase();
@@ -197,6 +263,13 @@ export default function AdminLeadsPage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
+
+        {deleteMessage && (
+          <div role="status" className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+            <span>{deleteMessage}</span>
+            <button type="button" onClick={() => setDeleteMessage(null)} className="shrink-0 rounded-md px-2 py-1 text-xs font-bold text-slate-500">Yopish</button>
+          </div>
+        )}
         
         {/* Page Title & Refresh */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -447,6 +520,16 @@ export default function AdminLeadsPage() {
           )}
         </div>
 
+        {isSuperAdminLeadsPage && isSuperAdmin && (
+          <details className="rounded-2xl border border-rose-200 bg-rose-50/40">
+            <summary className="cursor-pointer select-none px-4 py-4 text-sm font-bold text-rose-900">Xavfli amallar — arizalarni tozalash</summary>
+            <div className="border-t border-rose-100 px-4 py-4">
+              <p className="max-w-2xl text-xs leading-5 text-slate-600">Bu amal barcha arizalarni va ularga bog'langan status tarixini butunlay o'chiradi. Faqat sinov ma'lumotlarini tozalash kerak bo'lganda ishlating.</p>
+              <button type="button" onClick={() => { setBulkDeletePhrase(""); setBulkDeleteOpen(true); }} className="mt-4 min-h-11 rounded-xl border-2 border-rose-300 bg-white px-4 text-xs font-bold text-rose-800 hover:bg-rose-100">Barcha arizalarni tozalash…</button>
+            </div>
+          </details>
+        )}
+
         {/* Modal: Edit Internal Notes */}
         {editingNotesLead && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -562,7 +645,7 @@ export default function AdminLeadsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <div className="flex flex-col gap-3 pt-3 border-t border-slate-100 sm:flex-row sm:items-center sm:justify-between">
                 <a
                   href={`tel:${viewingLead.primaryPhone}`}
                   className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
@@ -570,12 +653,42 @@ export default function AdminLeadsPage() {
                   <PhoneCall className="h-3.5 w-3.5" />
                   <span>Qo'ng'iroq qilish</span>
                 </a>
-                <button
-                  onClick={() => setViewingLead(null)}
-                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                >
-                  Yopish
-                </button>
+                <div className="flex flex-col-reverse gap-2 sm:flex-row">
+                  {isSuperAdminLeadsPage && isSuperAdmin && (
+                    <button type="button" onClick={() => { setLeadToDelete(viewingLead); setViewingLead(null); }} className="min-h-11 rounded-xl border border-rose-200 bg-white px-4 text-xs font-bold text-rose-700 hover:bg-rose-50">
+                      Arizani o'chirish…
+                    </button>
+                  )}
+                  <button type="button" onClick={() => setViewingLead(null)} className="min-h-11 rounded-xl border border-slate-200 px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50">Yopish</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {leadToDelete && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="delete-lead-title">
+            <div className="w-full max-w-md rounded-2xl border border-rose-200 bg-white p-5 shadow-2xl sm:p-6">
+              <div className="flex items-center gap-3 text-rose-700"><ShieldAlert className="h-6 w-6" /><h3 id="delete-lead-title" className="text-base font-black">Arizani o'chirish</h3></div>
+              <p className="mt-4 text-sm leading-6 text-slate-700"><strong>{leadToDelete.firstName} {leadToDelete.lastName}</strong> arizasi butunlay o'chadi. Bu amalni qaytarib bo'lmaydi.</p>
+              <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <button type="button" disabled={deletingLead} onClick={() => setLeadToDelete(null)} className="min-h-12 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700">Bekor qilish</button>
+                <button type="button" disabled={deletingLead} onClick={handleDeleteLead} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-rose-700 px-4 text-sm font-bold text-white disabled:opacity-60">{deletingLead && <Loader2 className="h-4 w-4 animate-spin" />}Ha, o'chirish</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {bulkDeleteOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="delete-all-leads-title">
+            <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-2xl border border-rose-200 bg-white p-5 shadow-2xl sm:p-6">
+              <div className="flex items-center gap-3 text-rose-700"><ShieldAlert className="h-6 w-6" /><h3 id="delete-all-leads-title" className="text-base font-black">Barcha arizalarni o'chirish</h3></div>
+              <p className="mt-4 text-sm leading-6 text-slate-700">Barcha arizalar va ularning status tarixi qaytarib bo'lmaydigan tarzda o'chadi. Tasdiqlash uchun quyidagi iborani aynan yozing:</p>
+              <code className="mt-3 block rounded-lg bg-rose-50 p-3 text-xs font-bold text-rose-900">BARCHA ARIZALARNI O'CHIRISH</code>
+              <input autoComplete="off" value={bulkDeletePhrase} onChange={(event) => setBulkDeletePhrase(event.target.value)} aria-label="Tasdiqlash iborasi" className="mt-3 min-h-12 w-full rounded-xl border border-slate-300 px-3 text-sm text-slate-900" />
+              <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <button type="button" disabled={deletingAllLeads} onClick={() => { setBulkDeleteOpen(false); setBulkDeletePhrase(""); }} className="min-h-12 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700">Bekor qilish</button>
+                <button type="button" disabled={deletingAllLeads || bulkDeletePhrase !== "BARCHA ARIZALARNI O'CHIRISH"} onClick={handleDeleteAllLeads} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-rose-700 px-4 text-sm font-bold text-white disabled:opacity-40">{deletingAllLeads && <Loader2 className="h-4 w-4 animate-spin" />}Hammasini o'chirish</button>
               </div>
             </div>
           </div>
