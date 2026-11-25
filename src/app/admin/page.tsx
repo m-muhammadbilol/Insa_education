@@ -120,7 +120,7 @@ export default function AdminLoginPage() {
         <div className="text-center mb-8">
           <div className="relative mx-auto h-14 w-14 rounded-2xl overflow-hidden shadow-md mb-3">
             <Image
-              src="/assets/insa-badge.svg"
+              src="/assets/insa-mark-photo.png"
               alt="INSA Education"
               fill
               className="object-cover"

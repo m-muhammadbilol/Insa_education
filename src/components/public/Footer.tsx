@@ -34,7 +34,7 @@ export default function Footer() {
             <Link href="/" className="flex items-center gap-3">
               <div className="relative h-10 w-10 rounded-xl overflow-hidden shadow-sm">
                 <Image
-                  src="/assets/insa-badge.svg"
+                  src="/assets/insa-mark-photo.png"
                   alt="INSA Education Logo"
                   fill
                   className="object-cover"
