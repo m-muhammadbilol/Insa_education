@@ -113,7 +113,7 @@ async function bootstrap() {
     normalizedUsername: normalized,
     role: "SUPER_ADMIN",
     status: "ACTIVE",
-    mustChangePassword: false,
+    mustChangePassword: true,
     createdAt: nowIso,
     updatedAt: nowIso,
     lastLoginAt: null,

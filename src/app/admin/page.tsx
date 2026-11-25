@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginInput } from "@/lib/validations/auth";
 import { usernameToInternalEmail } from "@/lib/auth/username-mapping";
-import { auth, db } from "@/lib/firebase/client";
+import { auth, db, firebaseClientConfigured } from "@/lib/firebase/client";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { UserProfile } from "@/lib/types/profile";
@@ -35,6 +35,14 @@ export default function AdminLoginPage() {
   const onSubmit = async (data: LoginInput) => {
     setIsLoading(true);
     setAuthError(null);
+
+    if (!firebaseClientConfigured) {
+      setAuthError(
+        "Firebase API kaliti sozlanmagan yoki noto‘g‘ri. .env.local faylidagi NEXT_PUBLIC_FIREBASE_API_KEY qiymatini Firebase Console’dan oling."
+      );
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const internalEmail = usernameToInternalEmail(data.username);
@@ -92,6 +100,10 @@ export default function AdminLoginPage() {
         setAuthError("Ushbu hisob tizimda faol emas (muzlatilgan).");
       } else if (err.code === "auth/too-many-requests") {
         setAuthError("Urinishlar soni ko'payib ketdi. Iltimos, birozdan so'ng urinib ko'ring.");
+      } else if (err.code === "auth/api-key-not-valid") {
+        setAuthError(
+          "Firebase API kaliti yaroqsiz. Firebase Console’dagi Web ilova sozlamalaridan to‘g‘ri API key kiriting."
+        );
       } else {
         setAuthError(err.message || "Tizimga kirishda xatolik yuz berdi.");
       }
