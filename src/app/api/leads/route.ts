@@ -51,9 +51,9 @@ export async function POST(req: NextRequest) {
     }
     submissionTimestamps.set(rateKey, now);
     if (submissionTimestamps.size > 5000) {
-      for (const [key, timestamp] of submissionTimestamps) {
+      submissionTimestamps.forEach((timestamp, key) => {
         if (now - timestamp > 15 * 60 * 1000) submissionTimestamps.delete(key);
-      }
+      });
       while (submissionTimestamps.size > 5000) {
         const oldestKey = submissionTimestamps.keys().next().value;
         if (!oldestKey) break;

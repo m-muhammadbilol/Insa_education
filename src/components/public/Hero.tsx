@@ -78,10 +78,10 @@ export default function Hero() {
               </a>
             </div>
 
-            {/* Note badge */}
-            <div className="pt-2 text-xs text-slate-400 flex items-center gap-2">
-              <span className="font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded">DEMO</span>
-              <span>Platforma ko'rgazmali namoyish rejimida ishlamoqda.</span>
+            {/* Application status */}
+            <div className="pt-2 text-xs text-emerald-700 flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              <span>Onlayn ariza qabul qilish ochiq</span>
             </div>
           </div>
 

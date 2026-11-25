@@ -29,6 +29,14 @@ Firebase'dagi eski foydalanuvchilar, arizalar, izohlar yoki audit yozuvlari avto
 - Admin API'dagi 100 ta yozuv chegarasi sabab eski ko'rinish yangi arizalarning bir qismini yashirishi mumkin edi. API endi `limit`/`offset` va jami sonni qaytaradi; CRM sahifasi yozuvlarni 100 tadan yuklab, 10,000 gacha bo'lgan arizalarni ko'rsatadi.
 - Rozilik checkbox'i bo'sh boshlanadi; ism/familiya serverda tekshirishdan oldin bo'sh joylardan tozalanadi.
 - Telefon maydonlari mobil uchun raqam klaviaturasini va brauzer autofill'ini taklif qiladi.
+- Telefon navigatsiyasida katta bosish maydonlari, screen reader uchun menyu holati va doim ko'rinadigan pastki ariza tugmasi bor; forma maydonlari iPhone'da avtomatik zoom bo'lmasligi uchun kattalashtirildi.
+- Ishlab turgan lead API arizani bazaga yozadi, rozilikni serverda tekshiradi, keyin Telegram xabarini imkon bo'lsa yuboradi. Jonli saytda yangi test arizasi yuborilmadi, shuning uchun Production end-to-end qabul tasdiqlanmadi.
+
+## Admin parolini boshqarish
+
+- Barcha adminlar va Super Admin uchun panel navigatsiyasida `Parolni o'zgartirish` sahifasi bor.
+- Oddiy parol yangilashda server joriy parolni Supabase Auth bilan tekshiradi; birinchi kirishdagi vaqtinchalik parolni almashtirish esa yaroqli login sessiyasi bilan bajariladi.
+- Yangi parol audit jurnaliga yoziladi (parolning o'zi hech qachon log'ga qo'shilmaydi).
 
 ## Xavfsizlik tekshiruvi
 
@@ -57,4 +65,5 @@ Supabase migratsiya kodi `master` branch'ga push qilingan (`0fc7d90`). Supabase 
 - Production redeploy `BDDVoZSaWi2jQ4CMynT7qjCpTyCZ` holati `Ready` bo'ldi.
 - Sayt `https://insa-education.vercel.app/` va admin login `https://insa-education.vercel.app/admin` ochilishi ko'rildi.
 - Foydalanuvchi `npm.cmd run bootstrap` ni muvaffaqiyatli bajarganini yubordi; Supabase Super Admin hisobi yaratildi va birinchi kirishda vaqtinchalik parolni almashtirish kerak.
-- 2026-11-25 kuni koddagi auth sessiya, CRM sahifalash, mobil ariza maydonlari va rozilik holati yangilandi. O'zgarishlar hali deploy'dan keyin amalda tekshirilmagan.
+- 2026-11-25: auth sessiyasi, CRM sahifalash, mobil UI, rozilik va Super Admin parolni mustaqil o'zgartirishi yangilandi.
+- Tekshiruv: `npm.cmd run test:verify` — 7/7 ssenariy o'tdi; `npm.cmd run build` — production build muvaffaqiyatli. Jonli Vercel ariza yuborish oqimi qo'lda sinovdan o'tkazilmadi.

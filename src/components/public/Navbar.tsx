@@ -123,14 +123,16 @@ export default function Navbar() {
         <div className="flex md:hidden items-center gap-2">
           <a
             href="#lead-form"
-            className="rounded-lg bg-brand-900 px-3 py-1.5 text-xs font-semibold text-white"
+            className="inline-flex min-h-11 items-center rounded-lg bg-brand-900 px-4 text-xs font-semibold text-white"
           >
             Yozilish
           </a>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-slate-700 hover:text-brand-900"
-            aria-label="Menyu"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 hover:text-brand-900"
+            aria-label={mobileMenuOpen ? "Menyuni yopish" : "Menyuni ochish"}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -139,7 +141,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-100 bg-white px-4 pt-3 pb-6 shadow-xl animate-in slide-in-from-top-2">
+        <div id="mobile-navigation" className="md:hidden border-t border-slate-100 bg-white px-4 pt-3 pb-6 shadow-xl animate-in slide-in-from-top-2">
           <nav className="flex flex-col gap-3">
             {navLinks.map((link) => (
               <a

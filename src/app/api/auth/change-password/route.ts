@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { authenticateRequest } from "@/lib/auth/session";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { auditToRow } from "@/lib/supabase/mappers";
@@ -7,7 +8,7 @@ import { changePasswordSchema } from "@/lib/validations/auth";
 export async function POST(req: NextRequest) {
   try {
     // Authenticate the user (any role whose token is valid and active)
-    const { uid, profile } = await authenticateRequest();
+    const { uid, email, profile } = await authenticateRequest();
 
     const body = await req.json();
     const parsed = changePasswordSchema.safeParse(body);
@@ -23,10 +24,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { newPassword } = parsed.data;
+    const { currentPassword, newPassword } = parsed.data;
     const nowIso = new Date().toISOString();
 
     const supabase = getSupabaseAdmin();
+    if (!profile.mustChangePassword) {
+      if (!currentPassword || !email) {
+        return NextResponse.json(
+          { success: false, message: "Hozirgi parolni kiriting." },
+          { status: 400 }
+        );
+      }
+
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (!url || !anonKey) throw new Error("SUPABASE_PUBLIC_CONFIG_MISSING");
+
+      const verifier = createClient(url, anonKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      const { error: verifyError } = await verifier.auth.signInWithPassword({
+        email,
+        password: currentPassword,
+      });
+      if (verifyError) {
+        return NextResponse.json(
+          { success: false, message: "Hozirgi parol noto'g'ri." },
+          { status: 400 }
+        );
+      }
+    }
+
     const { error: passwordError } = await supabase.auth.admin.updateUserById(uid, {
       password: newPassword,
     });
@@ -47,7 +75,7 @@ export async function POST(req: NextRequest) {
       targetId: uid,
       timestamp: nowIso,
       relevantMetadata: {
-        reason: "First login / user password change",
+        reason: profile.mustChangePassword ? "First login password change" : "User password change",
       },
     }));
     if (auditError) throw auditError;

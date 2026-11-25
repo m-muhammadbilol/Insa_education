@@ -71,7 +71,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
   };
 
   return (
-    <div id="lead-form" className="relative w-full rounded-2xl border border-slate-100 bg-white p-6 sm:p-8 shadow-xl shadow-brand-900/5">
+    <div id="lead-form" className="relative w-full scroll-mt-24 rounded-2xl border border-slate-100 bg-white p-5 shadow-xl shadow-brand-900/5 sm:p-8">
       <div className="mb-6">
         <div className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-900 mb-2">
           <PhoneCall className="h-3.5 w-3.5 text-brand-700" />
@@ -128,7 +128,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
                 autoCapitalize="words"
                 placeholder="Masalan: Sardor"
                 {...register("firstName")}
-                className={`w-full rounded-xl border px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
+                  className={`min-h-12 w-full rounded-xl border px-3.5 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all sm:text-sm ${
                   errors.firstName
                     ? "border-rose-300 focus:border-rose-500 focus:ring-rose-200 bg-rose-50/20"
                     : "border-slate-200 focus:border-brand-900 focus:ring-brand-100"
@@ -153,7 +153,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
                 autoCapitalize="words"
                 placeholder="Masalan: Aliyev"
                 {...register("lastName")}
-                className={`w-full rounded-xl border px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
+                  className={`min-h-12 w-full rounded-xl border px-3.5 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all sm:text-sm ${
                   errors.lastName
                     ? "border-rose-300 focus:border-rose-500 focus:ring-rose-200 bg-rose-50/20"
                     : "border-slate-200 focus:border-brand-900 focus:ring-brand-100"
@@ -182,7 +182,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
                 enterKeyHint="next"
                 placeholder="+998 90 123 45 67"
                 {...register("primaryPhone")}
-                className={`w-full rounded-xl border px-3.5 py-2.5 text-sm text-slate-900 font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
+                  className={`min-h-12 w-full rounded-xl border px-3.5 py-3 text-base text-slate-900 font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all sm:text-sm ${
                   errors.primaryPhone
                     ? "border-rose-300 focus:border-rose-500 focus:ring-rose-200 bg-rose-50/20"
                     : "border-slate-200 focus:border-brand-900 focus:ring-brand-100"
@@ -208,7 +208,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
                 enterKeyHint="done"
                 placeholder="+998 99 765 43 21"
                 {...register("secondaryPhone")}
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 font-mono placeholder:text-slate-400 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-all"
+                className="min-h-12 w-full rounded-xl border border-slate-200 px-3.5 py-3 text-base text-slate-900 font-mono placeholder:text-slate-400 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-all sm:text-sm"
               />
               {errors.secondaryPhone && (
                 <p className="mt-1 text-xs text-rose-600">{errors.secondaryPhone.message}</p>
@@ -227,7 +227,7 @@ export default function LeadForm({ initialCourse }: LeadFormProps) {
             <select
               id="courseInterest"
               {...register("courseInterest")}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-all"
+              className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-base text-slate-900 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-all sm:text-sm"
             >
               <option value="IELTS">IELTS (Intensive & Standard)</option>
               <option value="CEFR">CEFR / Multi-level (B1, B2, C1)</option>

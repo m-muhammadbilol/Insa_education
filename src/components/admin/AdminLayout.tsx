@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Loader2,
   ShieldAlert,
+  KeyRound,
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -107,6 +108,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       href: "/admin/leads",
       icon: Users,
       active: pathname === "/admin/leads",
+    },
+    {
+      name: "Parolni o'zgartirish",
+      href: "/admin/change-password",
+      icon: KeyRound,
+      active: pathname === "/admin/change-password",
     },
   ];
 

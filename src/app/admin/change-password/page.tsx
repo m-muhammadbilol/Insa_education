@@ -26,6 +26,7 @@ export default function ChangePasswordPage() {
   } = useForm<ChangePasswordInput>({
     resolver: zodResolver(changePasswordSchema),
     defaultValues: {
+      currentPassword: "",
       newPassword: "",
       confirmPassword: "",
     },
@@ -49,11 +50,6 @@ export default function ChangePasswordPage() {
         if (row) {
           const profile = profileFromRow(row);
           if (active) setCurrentUserProfile(profile);
-          if (!profile.mustChangePassword) {
-            // Already changed, route to appropriate dashboard
-            router.push(profile.role === "SUPER_ADMIN" ? "/admin/superadmin" : "/admin/dashboard");
-            return;
-          }
         }
       } catch (err) {
         console.error(err);
@@ -130,10 +126,12 @@ export default function ChangePasswordPage() {
             <KeyRound className="h-6 w-6" />
           </div>
           <h2 className="text-xl font-black text-slate-900">
-            Parolni o'zgartirish talab qilinadi
+            {currentUserProfile?.mustChangePassword ? "Vaqtinchalik parolni almashtiring" : "Parolni o'zgartirish"}
           </h2>
           <p className="mt-1 text-xs text-slate-500">
-            Hisobingiz xavfsizligi uchun vaqtinchalik parolni o'zingizning yangi shaxsiy parolingizga almashtiring.
+            {currentUserProfile?.mustChangePassword
+              ? "Hisobingizni himoya qilish uchun yangi, shaxsiy parol o'rnating."
+              : "Parolni yangilash uchun hozirgi parolingizni tasdiqlang."}
           </p>
         </div>
 
@@ -156,6 +154,23 @@ export default function ChangePasswordPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+            {!currentUserProfile?.mustChangePassword && (
+              <div>
+                <label
+                  htmlFor="currentPassword"
+                  className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5"
+                >
+                  Hozirgi parol
+                </label>
+                <input
+                  id="currentPassword"
+                  type="password"
+                  autoComplete="current-password"
+                  {...register("currentPassword")}
+                  className="min-h-12 w-full rounded-xl border border-slate-200 px-3.5 py-3 text-base text-slate-900 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100 sm:text-sm"
+                />
+              </div>
+            )}
             <div>
               <label
                 htmlFor="newPassword"
@@ -166,6 +181,7 @@ export default function ChangePasswordPage() {
               <input
                 id="newPassword"
                 type="password"
+                autoComplete="new-password"
                 placeholder="Kamida 8 belgi, katta harf va raqam"
                 {...register("newPassword")}
                 className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100"
@@ -185,6 +201,7 @@ export default function ChangePasswordPage() {
               <input
                 id="confirmPassword"
                 type="password"
+                autoComplete="new-password"
                 placeholder="Yangi parolni takrorlang"
                 {...register("confirmPassword")}
                 className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-100"
