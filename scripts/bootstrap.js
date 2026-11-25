@@ -11,7 +11,9 @@
 
 require("@next/env").loadEnvConfig(process.cwd());
 
-const admin = require("firebase-admin");
+const { cert, getApps, initializeApp } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
+const { getFirestore } = require("firebase-admin/firestore");
 
 function formatPrivateKey(key) {
   if (!key) return undefined;
@@ -54,18 +56,16 @@ async function bootstrap() {
     process.exit(1);
   }
 
-  if (admin.apps.length === 0) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId,
-        clientEmail,
-        privateKey,
-      }),
-    });
-  }
+  const app = getApps()[0] || initializeApp({
+    credential: cert({
+      projectId,
+      clientEmail,
+      privateKey,
+    }),
+  });
 
-  const db = admin.firestore();
-  const auth = admin.auth();
+  const db = getFirestore(app);
+  const auth = getAuth(app);
 
   console.log("🔍 Checking for existing Super Admin accounts...");
 
