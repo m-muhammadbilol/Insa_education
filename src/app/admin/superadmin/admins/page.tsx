@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { auth } from "@/lib/firebase/client";
+import { getAccessToken, supabase } from "@/lib/supabase/client";
 import { UserProfile } from "@/lib/types/profile";
 import {
   UserPlus,
@@ -23,6 +23,7 @@ import {
 
 export default function SuperAdminAdminsPage() {
   const [admins, setAdmins] = useState<UserProfile[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,13 +65,14 @@ export default function SuperAdminAdminsPage() {
     try {
       setLoading(true);
       setError(null);
-      const user = auth.currentUser;
-      if (!user) return;
-      const idToken = await user.getIdToken();
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
+      const { data: sessionData } = await supabase.auth.getSession();
+      setCurrentUserId(sessionData.session?.user.id ?? null);
 
       const res = await fetch("/api/superadmin/admins", {
         headers: {
-          Authorization: `Bearer ${idToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -106,15 +108,14 @@ export default function SuperAdminAdminsPage() {
 
     try {
       setCreating(true);
-      const user = auth.currentUser;
-      if (!user) return;
-      const idToken = await user.getIdToken();
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
 
       const res = await fetch("/api/superadmin/admins", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           username: newUsername.trim(),
@@ -144,9 +145,8 @@ export default function SuperAdminAdminsPage() {
 
     try {
       setFreezing(true);
-      const user = auth.currentUser;
-      if (!user) return;
-      const idToken = await user.getIdToken();
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
 
       const res = await fetch(
         `/api/superadmin/admins/${freezeModalData.admin.uid}/freeze`,
@@ -154,7 +154,7 @@ export default function SuperAdminAdminsPage() {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${idToken}`,
+            Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify({ action: freezeModalData.action }),
         }
@@ -179,9 +179,8 @@ export default function SuperAdminAdminsPage() {
 
     try {
       setResetting(true);
-      const user = auth.currentUser;
-      if (!user) return;
-      const idToken = await user.getIdToken();
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
 
       const res = await fetch(
         `/api/superadmin/admins/${resetModalAdmin.uid}/reset-password`,
@@ -189,7 +188,7 @@ export default function SuperAdminAdminsPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${idToken}`,
+            Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify({
             temporaryPassword: resetTemporaryPassword.trim(),
@@ -216,16 +215,15 @@ export default function SuperAdminAdminsPage() {
 
     try {
       setDeleting(true);
-      const user = auth.currentUser;
-      if (!user) return;
-      const idToken = await user.getIdToken();
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
 
       const res = await fetch(
         `/api/superadmin/admins/${deleteModalAdmin.uid}`,
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${idToken}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         }
       );
@@ -313,7 +311,7 @@ export default function SuperAdminAdminsPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {admins.map((adm) => {
-                    const isSelf = auth.currentUser?.uid === adm.uid;
+                    const isSelf = currentUserId === adm.uid;
                     const isSuper = adm.role === "SUPER_ADMIN";
                     const isFrozen = adm.status === "FROZEN";
 
@@ -596,7 +594,7 @@ export default function SuperAdminAdminsPage() {
               <div className="text-xs text-slate-600 leading-relaxed mb-6">
                 {freezeModalData.action === "FREEZE" ? (
                   <p>
-                    Ushbu admin hisobini muzlatish darhol uning barcha <strong>Firebase Refresh Tokenlarini bekor qiladi</strong>, ochiq sessiyalarini uzadi va himoyalangan API hamda Firestore'ga kirishini to'xtatadi. Tasdiqlaysizmi?
+                    Ushbu admin hisobini muzlatish darhol uning barcha <strong>Supabase Auth sessiyalarini bekor qiladi</strong>, ochiq sessiyalarini uzadi va himoyalangan API'larga kirishini to'xtatadi. Tasdiqlaysizmi?
                   </p>
                 ) : (
                   <p>
@@ -728,7 +726,7 @@ export default function SuperAdminAdminsPage() {
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed mb-6">
-                Ushbu amal qaytarib bo'lmaydi. Administrator hisobi Firebase Authentication va Firestore'dan butunlay o'chiriladi hamda audit jurnalida qayd etiladi.
+                Ushbu amal qaytarib bo'lmaydi. Administrator hisobi Supabase Auth va profillar jadvalidan butunlay o'chiriladi hamda audit jurnalida qayd etiladi.
               </p>
 
               <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">

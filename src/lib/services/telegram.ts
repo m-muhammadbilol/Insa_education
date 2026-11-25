@@ -1,7 +1,7 @@
 /**
  * Telegram notification service for new lead alerts.
  * Designed to be completely failsafe: if Telegram API is unreachable or fails,
- * the lead remains safely committed to Firestore.
+ * the lead remains safely committed to Supabase PostgreSQL.
  */
 
 interface SendLeadNotificationParams {

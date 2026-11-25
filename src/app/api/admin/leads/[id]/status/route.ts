@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth/session";
-import { adminDb } from "@/lib/firebase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { LeadStatus } from "@/lib/types/lead";
 
 const validStatuses: LeadStatus[] = [
@@ -28,58 +28,22 @@ export async function PATCH(
       );
     }
 
-    const leadRef = adminDb().collection("leads").doc(leadId);
-    const leadDoc = await leadRef.get();
-
-    if (!leadDoc.exists) {
-      return NextResponse.json(
-        { success: false, message: "Lead topilmadi" },
-        { status: 404 }
-      );
+    const { data, error } = await getSupabaseAdmin().rpc("update_lead_status", {
+      p_lead_id: leadId,
+      p_new_status: newStatus,
+      p_changed_by: profile.username,
+      p_actor_uid: profile.uid,
+      p_actor_role: profile.role,
+      p_actor_username: profile.username,
+    });
+    if (error) {
+      if (error.message.includes("LEAD_NOT_FOUND")) {
+        return NextResponse.json({ success: false, message: "Lead topilmadi" }, { status: 404 });
+      }
+      throw error;
     }
-
-    const leadData = leadDoc.data();
-    const oldStatus = leadData?.status || "NEW";
-    const nowIso = new Date().toISOString();
-
-    // Batch or transaction for atomic status update and history recording
-    const batch = adminDb().batch();
-
-    // 1. Update lead document
-    batch.update(leadRef, {
-      status: newStatus,
-      updatedAt: nowIso,
-    });
-
-    // 2. Append to lead_status_history
-    const historyRef = adminDb().collection("lead_status_history").doc();
-    batch.set(historyRef, {
-      id: historyRef.id,
-      leadId,
-      oldStatus,
-      newStatus,
-      changedBy: profile.username,
-      changedAt: nowIso,
-    });
-
-    // 3. Append to audit_logs
-    const auditRef = adminDb().collection("audit_logs").doc();
-    batch.set(auditRef, {
-      id: auditRef.id,
-      actorUid: profile.uid,
-      actorRole: profile.role,
-      actorUsername: profile.username,
-      action: "UPDATE_LEAD_STATUS",
-      targetType: "LEAD",
-      targetId: leadId,
-      timestamp: nowIso,
-      relevantMetadata: {
-        oldStatus,
-        newStatus,
-      },
-    });
-
-    await batch.commit();
+    const result = Array.isArray(data) ? data[0] : data;
+    const oldStatus = result?.old_status || "NEW";
 
     return NextResponse.json({
       success: true,

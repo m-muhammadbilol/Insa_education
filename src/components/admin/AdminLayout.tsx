@@ -4,9 +4,8 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { auth, db } from "@/lib/firebase/client";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { getAccessToken, supabase } from "@/lib/supabase/client";
+import { profileFromRow } from "@/lib/supabase/mappers";
 import { UserProfile } from "@/lib/types/profile";
 import {
   LayoutDashboard,
@@ -34,18 +33,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
+    let active = true;
+    const loadProfile = async (uid: string | undefined) => {
+      if (!uid) {
         router.push("/admin");
         return;
       }
 
       try {
-        const snap = await getDoc(doc(db, "profiles", user.uid));
-        if (snap.exists()) {
-          const prof = snap.data() as UserProfile;
+        const { data: row, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("uid", uid)
+          .maybeSingle();
+        if (error) throw error;
+        if (row) {
+          const prof = profileFromRow(row);
           if (prof.status === "FROZEN") {
-            await signOut(auth);
+            await supabase.auth.signOut();
             router.push("/admin");
             return;
           }
@@ -53,22 +58,30 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             router.push("/admin/change-password");
             return;
           }
-          setProfile(prof);
+          if (active) setProfile(prof);
         } else {
           router.push("/admin");
         }
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
+    };
+
+    supabase.auth.getSession().then(({ data }) => loadProfile(data.session?.user.id));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      void loadProfile(session?.user.id);
     });
 
-    return () => unsubscribe();
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, [router]);
 
   const handleSignOut = async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
     router.push("/admin");
   };
 

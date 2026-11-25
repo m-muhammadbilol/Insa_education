@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth/session";
-import { adminAuth, adminDb } from "@/lib/firebase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { auditToRow, profileFromRow } from "@/lib/supabase/mappers";
 
 export async function POST(
   req: NextRequest,
@@ -20,35 +21,39 @@ export async function POST(
       );
     }
 
-    const profileRef = adminDb().collection("profiles").doc(targetUid);
-    const profileDoc = await profileRef.get();
+    const supabase = getSupabaseAdmin();
+    const { data: profileRow, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("uid", targetUid)
+      .maybeSingle();
+    if (profileError) throw profileError;
 
-    if (!profileDoc.exists) {
+    if (!profileRow) {
       return NextResponse.json(
         { success: false, message: "Administrator topilmadi" },
         { status: 404 }
       );
     }
 
-    const targetProfile = profileDoc.data();
+    const targetProfile = profileFromRow(profileRow);
     const nowIso = new Date().toISOString();
 
-    // 1. Update password in Firebase Auth
-    await adminAuth().updateUser(targetUid, {
+    const { error: passwordError } = await supabase.auth.admin.updateUserById(targetUid, {
       password: temporaryPassword,
     });
+    if (passwordError) throw passwordError;
 
-    // 2. Revoke current tokens so they must log in with the new temporary password
-    await adminAuth().revokeRefreshTokens(targetUid);
+    const { error: signOutError } = await supabase.auth.admin.signOut(targetUid, "global");
+    if (signOutError) throw signOutError;
 
-    // 3. Mark mustChangePassword = true in profile
-    await profileRef.update({
-      mustChangePassword: true,
-      updatedAt: nowIso,
-    });
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ must_change_password: true, updated_at: nowIso })
+      .eq("uid", targetUid);
+    if (updateError) throw updateError;
 
-    // 4. Record audit log
-    await adminDb().collection("audit_logs").add({
+    const { error: auditError } = await supabase.from("audit_logs").insert(auditToRow({
       actorUid: actor.uid,
       actorRole: actor.role,
       actorUsername: actor.username,
@@ -57,9 +62,10 @@ export async function POST(
       targetId: targetUid,
       timestamp: nowIso,
       relevantMetadata: {
-        targetUsername: targetProfile?.username,
+        targetUsername: targetProfile.username,
       },
-    });
+    }));
+    if (auditError) throw auditError;
 
     return NextResponse.json({
       success: true,

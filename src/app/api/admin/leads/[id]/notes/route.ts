@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth/session";
-import { adminDb } from "@/lib/firebase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { auditToRow } from "@/lib/supabase/mappers";
 
 export async function PATCH(
   req: NextRequest,
@@ -12,10 +13,15 @@ export async function PATCH(
     const body = await req.json();
     const notes = typeof body.notes === "string" ? body.notes.trim() : "";
 
-    const leadRef = adminDb().collection("leads").doc(leadId);
-    const leadDoc = await leadRef.get();
+    const supabase = getSupabaseAdmin();
+    const { data: lead, error: leadError } = await supabase
+      .from("leads")
+      .select("id")
+      .eq("id", leadId)
+      .maybeSingle();
+    if (leadError) throw leadError;
 
-    if (!leadDoc.exists) {
+    if (!lead) {
       return NextResponse.json(
         { success: false, message: "Lead topilmadi" },
         { status: 404 }
@@ -24,13 +30,13 @@ export async function PATCH(
 
     const nowIso = new Date().toISOString();
 
-    await leadRef.update({
-      internalNotes: notes,
-      updatedAt: nowIso,
-    });
+    const { error: updateError } = await supabase
+      .from("leads")
+      .update({ internal_notes: notes, updated_at: nowIso })
+      .eq("id", leadId);
+    if (updateError) throw updateError;
 
-    // Record audit log
-    await adminDb().collection("audit_logs").add({
+    const { error: auditError } = await supabase.from("audit_logs").insert(auditToRow({
       actorUid: profile.uid,
       actorRole: profile.role,
       actorUsername: profile.username,
@@ -39,7 +45,8 @@ export async function PATCH(
       targetId: leadId,
       timestamp: nowIso,
       relevantMetadata: { notesLength: notes.length },
-    });
+    }));
+    if (auditError) throw auditError;
 
     return NextResponse.json({
       success: true,

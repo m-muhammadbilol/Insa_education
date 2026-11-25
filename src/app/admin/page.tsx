@@ -8,10 +8,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginInput } from "@/lib/validations/auth";
 import { usernameToInternalEmail } from "@/lib/auth/username-mapping";
-import { auth, db, firebaseClientConfigured } from "@/lib/firebase/client";
-import { signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { UserProfile } from "@/lib/types/profile";
+import { supabase, supabaseConfigured } from "@/lib/supabase/client";
+import { profileFromRow } from "@/lib/supabase/mappers";
 import { Lock, User, Eye, EyeOff, Loader2, AlertCircle, ShieldAlert, ArrowLeft } from "lucide-react";
 
 export default function AdminLoginPage() {
@@ -36,9 +34,9 @@ export default function AdminLoginPage() {
     setIsLoading(true);
     setAuthError(null);
 
-    if (!firebaseClientConfigured) {
+    if (!supabaseConfigured) {
       setAuthError(
-        "Firebase API kaliti sozlanmagan yoki noto‘g‘ri. .env.local faylidagi NEXT_PUBLIC_FIREBASE_API_KEY qiymatini Firebase Console’dan oling."
+        "Supabase sozlamalari hali kiritilmagan. Admin panelni ishga tushirish uchun Supabase URL va public key kerak."
       );
       setIsLoading(false);
       return;
@@ -47,27 +45,26 @@ export default function AdminLoginPage() {
     try {
       const internalEmail = usernameToInternalEmail(data.username);
 
-      // 1. Authenticate with Firebase Authentication
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        internalEmail,
-        data.password
-      );
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: internalEmail,
+        password: data.password,
+      });
+      if (signInError || !signInData.user) throw signInError || new Error("Kirish amalga oshmadi");
 
-      const uid = userCredential.user.uid;
-
-      // 2. Fetch User Profile from Firestore
-      const profileDoc = await getDoc(doc(db, "profiles", uid));
-      if (!profileDoc.exists()) {
-        // Fallback or demo profile if first run in development
+      const { data: profileRow, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("uid", signInData.user.id)
+        .maybeSingle();
+      if (profileError || !profileRow) {
         throw new Error("Foydalanuvchi profili topilmadi.");
       }
 
-      const profile = profileDoc.data() as UserProfile;
+      const profile = profileFromRow(profileRow);
 
       // 3. Check Account Status (Freeze Check)
       if (profile.status === "FROZEN") {
-        await signOut(auth);
+        await supabase.auth.signOut();
         setAuthError(
           "Hisobingiz vaqtincha muzlatilgan. Tizimdan foydalanish uchun bosh administratorga murojaat qiling."
         );
@@ -91,19 +88,15 @@ export default function AdminLoginPage() {
       console.error("[Login] Authentication error:", err);
       // Generic secure error message as specified by security requirements
       if (
-        err.code === "auth/invalid-credential" ||
-        err.code === "auth/user-not-found" ||
-        err.code === "auth/wrong-password"
+        err.code === "invalid_credentials" ||
+        err.code === "user_not_found" ||
+        err.code === "invalid_grant"
       ) {
         setAuthError("Foydalanuvchi nomi yoki parol noto'g'ri kiritildi.");
-      } else if (err.code === "auth/user-disabled") {
+      } else if (err.code === "user_banned") {
         setAuthError("Ushbu hisob tizimda faol emas (muzlatilgan).");
-      } else if (err.code === "auth/too-many-requests") {
+      } else if (err.code === "over_request_rate_limit" || err.code === "too_many_requests") {
         setAuthError("Urinishlar soni ko'payib ketdi. Iltimos, birozdan so'ng urinib ko'ring.");
-      } else if (err.code === "auth/api-key-not-valid") {
-        setAuthError(
-          "Firebase API kaliti yaroqsiz. Firebase Console’dagi Web ilova sozlamalaridan to‘g‘ri API key kiriting."
-        );
       } else {
         setAuthError(err.message || "Tizimga kirishda xatolik yuz berdi.");
       }

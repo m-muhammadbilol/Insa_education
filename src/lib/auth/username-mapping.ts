@@ -1,6 +1,6 @@
 /**
- * Deterministic mapping from username to Firebase Auth internal email.
- * This keeps Firebase Auth as the secure password hashing and verification engine
+ * Deterministic mapping from username to Supabase Auth internal email.
+ * Supabase Auth handles password hashing and verification
  * without needing user-facing emails.
  */
 export function normalizeUsername(username: string): string {

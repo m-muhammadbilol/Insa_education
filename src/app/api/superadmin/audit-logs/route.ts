@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth/session";
-import { adminDb } from "@/lib/firebase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { auditFromRow } from "@/lib/supabase/mappers";
 import { AuditLog } from "@/lib/types/audit";
 
 export const dynamic = "force-dynamic";
@@ -12,19 +13,13 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const limit = parseInt(searchParams.get("limit") || "100", 10);
 
-    const snapshot = await adminDb()
-      .collection("audit_logs")
-      .orderBy("timestamp", "desc")
-      .limit(Math.min(limit, 200))
-      .get();
-
-    const logs: AuditLog[] = [];
-    snapshot.forEach((doc: any) => {
-      logs.push({
-        id: doc.id,
-        ...doc.data(),
-      } as AuditLog);
-    });
+    const { data, error } = await getSupabaseAdmin()
+      .from("audit_logs")
+      .select("*")
+      .order("timestamp", { ascending: false })
+      .limit(Math.min(Math.max(limit, 1), 200));
+    if (error) throw error;
+    const logs: AuditLog[] = (data || []).map(auditFromRow);
 
     return NextResponse.json({
       success: true,

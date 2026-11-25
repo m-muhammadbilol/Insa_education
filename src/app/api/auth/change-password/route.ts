@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth/session";
-import { adminAuth, adminDb } from "@/lib/firebase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { auditToRow } from "@/lib/supabase/mappers";
 import { changePasswordSchema } from "@/lib/validations/auth";
 
 export async function POST(req: NextRequest) {
@@ -25,19 +26,19 @@ export async function POST(req: NextRequest) {
     const { newPassword } = parsed.data;
     const nowIso = new Date().toISOString();
 
-    // 1. Update password in Firebase Authentication
-    await adminAuth().updateUser(uid, {
+    const supabase = getSupabaseAdmin();
+    const { error: passwordError } = await supabase.auth.admin.updateUserById(uid, {
       password: newPassword,
     });
+    if (passwordError) throw passwordError;
 
-    // 2. Clear mustChangePassword flag in Firestore
-    await adminDb().collection("profiles").doc(uid).update({
-      mustChangePassword: false,
-      updatedAt: nowIso,
-    });
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ must_change_password: false, updated_at: nowIso })
+      .eq("uid", uid);
+    if (profileError) throw profileError;
 
-    // 3. Record audit log
-    await adminDb().collection("audit_logs").add({
+    const { error: auditError } = await supabase.from("audit_logs").insert(auditToRow({
       actorUid: uid,
       actorRole: profile.role,
       actorUsername: profile.username,
@@ -48,7 +49,8 @@ export async function POST(req: NextRequest) {
       relevantMetadata: {
         reason: "First login / user password change",
       },
-    });
+    }));
+    if (auditError) throw auditError;
 
     return NextResponse.json({
       success: true,

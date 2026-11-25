@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth/session";
-import { adminAuth, adminDb } from "@/lib/firebase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { auditToRow, profileFromRow } from "@/lib/supabase/mappers";
 
 export async function DELETE(
   req: NextRequest,
@@ -17,18 +18,23 @@ export async function DELETE(
       );
     }
 
-    const profileRef = adminDb().collection("profiles").doc(targetUid);
-    const profileDoc = await profileRef.get();
+    const supabase = getSupabaseAdmin();
+    const { data: profileRow, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("uid", targetUid)
+      .maybeSingle();
+    if (profileError) throw profileError;
 
-    if (!profileDoc.exists) {
+    if (!profileRow) {
       return NextResponse.json(
         { success: false, message: "Administrator topilmadi" },
         { status: 404 }
       );
     }
 
-    const targetProfile = profileDoc.data();
-    if (targetProfile?.role === "SUPER_ADMIN") {
+    const targetProfile = profileFromRow(profileRow);
+    if (targetProfile.role === "SUPER_ADMIN") {
       return NextResponse.json(
         { success: false, message: "Super Admin hisobini o'chirib bo'lmaydi" },
         { status: 403 }
@@ -37,18 +43,10 @@ export async function DELETE(
 
     const nowIso = new Date().toISOString();
 
-    // 1. Delete user from Firebase Auth (revokes all access immediately)
-    try {
-      await adminAuth().deleteUser(targetUid);
-    } catch (authErr: any) {
-      console.warn("[Delete Admin] Auth user deletion warning:", authErr.message);
-    }
+    const { error: deleteError } = await supabase.auth.admin.deleteUser(targetUid);
+    if (deleteError) throw deleteError;
 
-    // 2. Delete profile from Firestore
-    await profileRef.delete();
-
-    // 3. Record audit log
-    await adminDb().collection("audit_logs").add({
+    const { error: auditError } = await supabase.from("audit_logs").insert(auditToRow({
       actorUid: actor.uid,
       actorRole: actor.role,
       actorUsername: actor.username,
@@ -57,9 +55,10 @@ export async function DELETE(
       targetId: targetUid,
       timestamp: nowIso,
       relevantMetadata: {
-        deletedUsername: targetProfile?.username,
+        deletedUsername: targetProfile.username,
       },
-    });
+    }));
+    if (auditError) throw auditError;
 
     return NextResponse.json({
       success: true,

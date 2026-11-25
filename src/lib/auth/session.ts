@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
-import { adminAuth, adminDb } from "../firebase/admin";
+import { getSupabaseAdmin } from "../supabase/admin";
+import { profileFromRow } from "../supabase/mappers";
 import { UserProfile, UserRole } from "../types/profile";
 
 export interface AuthenticatedUser {
@@ -9,8 +10,8 @@ export interface AuthenticatedUser {
 }
 
 /**
- * Extracts and verifies the Firebase ID token from the Authorization header (Bearer token).
- * Validates that the account exists in Firestore profiles collection, is ACTIVE,
+ * Verifies the Supabase access token from the Authorization header (Bearer token).
+ * Validates that the account exists in the profiles table and is ACTIVE,
  * and matches the required role.
  */
 export async function authenticateRequest(
@@ -23,31 +24,30 @@ export async function authenticateRequest(
     throw new Error("UNAUTHORIZED: Missing or invalid authorization header");
   }
 
-  const idToken = authHeader.split("Bearer ")[1];
-  if (!idToken) {
+  const accessToken = authHeader.slice("Bearer ".length);
+  if (!accessToken) {
     throw new Error("UNAUTHORIZED: Token not provided");
   }
 
-  // Check token with revocation check
-  let decodedToken;
-  try {
-    decodedToken = await adminAuth().verifyIdToken(idToken, true);
-  } catch (err: any) {
-    if (err.code === "auth/id-token-revoked") {
-      throw new Error("REVOKED: Sessiya bekor qilingan. Qaytadan tizimga kiring.");
-    }
+  const supabase = getSupabaseAdmin();
+  const { data: authData, error: authError } = await supabase.auth.getUser(accessToken);
+  if (authError || !authData.user) {
     throw new Error("UNAUTHORIZED: Yaroqsiz yoki eskirgan sessiya");
   }
 
-  const uid = decodedToken.uid;
+  const uid = authData.user.id;
 
-  // Retrieve user profile from Firestore
-  const profileSnap = await adminDb().collection("profiles").doc(uid).get();
-  if (!profileSnap.exists) {
+  const { data: profileRow, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("uid", uid)
+    .maybeSingle();
+  if (profileError) throw new Error("PROFILE_LOOKUP_FAILED: Profilni tekshirib bo'lmadi");
+  if (!profileRow) {
     throw new Error("PROFILE_NOT_FOUND: Foydalanuvchi profili topilmadi");
   }
 
-  const profile = profileSnap.data() as UserProfile;
+  const profile = profileFromRow(profileRow);
 
   // Verify status is ACTIVE
   if (profile.status !== "ACTIVE") {
@@ -63,7 +63,7 @@ export async function authenticateRequest(
 
   return {
     uid,
-    email: decodedToken.email,
+    email: authData.user.email,
     profile,
   };
 }

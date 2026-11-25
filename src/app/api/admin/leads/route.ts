@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth/session";
-import { adminDb } from "@/lib/firebase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { leadFromRow } from "@/lib/supabase/mappers";
 import { Lead } from "@/lib/types/lead";
 
 export const dynamic = "force-dynamic";
@@ -15,20 +16,16 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search")?.toLowerCase().trim();
     const limit = parseInt(searchParams.get("limit") || "50", 10);
 
-    let query = adminDb()
-      .collection("leads")
-      .orderBy("createdAt", "desc");
+    let query = getSupabaseAdmin()
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(Math.min(Math.max(limit, 1), 100));
 
-    if (status && status !== "ALL") {
-      query = query.where("status", "==", status);
-    }
-
-    const snapshot = await query.limit(Math.min(limit, 100)).get();
-    let leads: Lead[] = [];
-
-    snapshot.forEach((doc: any) => {
-      leads.push(doc.data() as Lead);
-    });
+    if (status && status !== "ALL") query = query.eq("status", status);
+    const { data, error } = await query;
+    if (error) throw error;
+    let leads: Lead[] = (data || []).map(leadFromRow);
 
     // In-memory text search filtering if search term provided
     if (search) {

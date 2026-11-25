@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { auth } from "@/lib/firebase/client";
+import { getAccessToken, supabase } from "@/lib/supabase/client";
 import { AuditLog } from "@/lib/types/audit";
 import {
   FileText,
@@ -30,13 +30,12 @@ export default function SuperAdminAuditLogsPage() {
     try {
       setLoading(true);
       setError(null);
-      const user = auth.currentUser;
-      if (!user) return;
-      const idToken = await user.getIdToken();
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
 
       const res = await fetch("/api/superadmin/audit-logs?limit=100", {
         headers: {
-          Authorization: `Bearer ${idToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 

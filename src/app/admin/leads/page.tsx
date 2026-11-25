@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { auth } from "@/lib/firebase/client";
+import { getAccessToken, supabase } from "@/lib/supabase/client";
 import { Lead, LeadStatus } from "@/lib/types/lead";
 import LeadStatusBadge from "@/components/admin/LeadStatusBadge";
 import {
@@ -49,9 +49,8 @@ export default function AdminLeadsPage() {
     try {
       setLoading(true);
       setError(null);
-      const user = auth.currentUser;
-      if (!user) return;
-      const idToken = await user.getIdToken();
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
 
       const url =
         statusFilter === "ALL"
@@ -60,7 +59,7 @@ export default function AdminLeadsPage() {
 
       const res = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${idToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -80,9 +79,8 @@ export default function AdminLeadsPage() {
 
   const handleStatusChange = async (leadId: string, newStatus: LeadStatus) => {
     try {
-      const user = auth.currentUser;
-      if (!user) return;
-      const idToken = await user.getIdToken();
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
 
       // Optimistic update
       setLeads((prev) =>
@@ -93,7 +91,7 @@ export default function AdminLeadsPage() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -113,15 +111,14 @@ export default function AdminLeadsPage() {
 
     try {
       setSavingNotes(true);
-      const user = auth.currentUser;
-      if (!user) return;
-      const idToken = await user.getIdToken();
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
 
       const res = await fetch(`/api/admin/leads/${editingNotesLead.id}/notes`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ notes: notesValue }),
       });

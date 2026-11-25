@@ -6,9 +6,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { changePasswordSchema, ChangePasswordInput } from "@/lib/validations/auth";
-import { auth, db } from "@/lib/firebase/client";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { getAccessToken, supabase } from "@/lib/supabase/client";
+import { profileFromRow } from "@/lib/supabase/mappers";
 import { UserProfile } from "@/lib/types/profile";
 import { KeyRound, CheckCircle2, AlertCircle, Loader2, ShieldCheck } from "lucide-react";
 
@@ -33,17 +32,23 @@ export default function ChangePasswordPage() {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
+    let active = true;
+    const loadProfile = async (uid: string | undefined) => {
+      if (!uid) {
         router.push("/admin");
         return;
       }
 
       try {
-        const profileDoc = await getDoc(doc(db, "profiles", user.uid));
-        if (profileDoc.exists()) {
-          const profile = profileDoc.data() as UserProfile;
-          setCurrentUserProfile(profile);
+        const { data: row, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("uid", uid)
+          .maybeSingle();
+        if (error) throw error;
+        if (row) {
+          const profile = profileFromRow(row);
+          if (active) setCurrentUserProfile(profile);
           if (!profile.mustChangePassword) {
             // Already changed, route to appropriate dashboard
             router.push(profile.role === "SUPER_ADMIN" ? "/admin/superadmin" : "/admin/dashboard");
@@ -55,9 +60,17 @@ export default function ChangePasswordPage() {
       } finally {
         setIsVerifying(false);
       }
+    };
+
+    supabase.auth.getSession().then(({ data }) => loadProfile(data.session?.user.id));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      void loadProfile(session?.user.id);
     });
 
-    return () => unsubscribe();
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, [router]);
 
   const onSubmit = async (data: ChangePasswordInput) => {
@@ -65,18 +78,16 @@ export default function ChangePasswordPage() {
     setServerError(null);
 
     try {
-      const user = auth.currentUser;
-      if (!user) {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
         throw new Error("Sessiya topilmadi. Qaytadan kiring.");
       }
-
-      const idToken = await user.getIdToken();
 
       const res = await fetch("/api/auth/change-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(data),
       });

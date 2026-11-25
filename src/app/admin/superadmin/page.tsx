@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Link from "next/link";
-import { auth } from "@/lib/firebase/client";
+import { getAccessToken, supabase } from "@/lib/supabase/client";
 import { UserProfile } from "@/lib/types/profile";
 import {
   ShieldCheck,
@@ -30,13 +30,12 @@ export default function SuperAdminOverviewPage() {
   const fetchAdmins = async () => {
     try {
       setLoading(true);
-      const user = auth.currentUser;
-      if (!user) return;
-      const idToken = await user.getIdToken();
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
 
       const res = await fetch("/api/superadmin/admins", {
         headers: {
-          Authorization: `Bearer ${idToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 

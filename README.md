@@ -19,11 +19,11 @@
 
 - **Frontend:** Next.js 14 (App Router), TypeScript (Strict), Tailwind CSS, Lucide Icons
 - **Forma va Validatsiya:** React Hook Form, Zod
-- **Autentifikatsiya:** Firebase Authentication (Deterministik foydalanuvchi nomiga asoslangan ichki xavfsiz mexanizm)
-- **Ma'lumotlar Bazasi:** Cloud Firestore (Qat'iy xavfsizlik qoidalari bilan)
-- **Server:** Next.js Route Handlers (Firebase Spark bepul tarifiga 100% mos — Cloud Functions talab qilinmaydi)
+- **Autentifikatsiya:** Supabase Auth (foydalanuvchi nomidan ichki emailga deterministik xaritalash)
+- **Ma'lumotlar Bazasi:** Supabase PostgreSQL + Row Level Security
+- **Server:** Next.js Route Handlers (server-only Supabase secret key)
 - **Xabarnomalar:** Telegram Bot API (Failsafe arxitektura)
-- **Deployment:** Vercel (Hobby) / Firebase Spark
+- **Deployment:** Vercel (Hobby) / Supabase Free
 
 ---
 
@@ -31,9 +31,8 @@
 
 ```
 insa-education/
-├── firestore.rules               # Cloud Firestore qat'iy xavfsizlik qoidalari
-├── firestore.indexes.json        # Firestore kompozit indekslari
 ├── .env.example                  # Maxfiy ma'lumotlarsiz konfiguratsiya shabloni
+├── supabase/schema.sql           # Supabase jadvallar, RLS va atomic lead status function
 ├── scripts/
 │   ├── bootstrap.js              # Super Admin yaratish bo'yicha bir martalik xavfsiz skript
 │   └── test-scenarios.js         # Biznes mantig'i va xavfsizlik testlari
@@ -67,7 +66,7 @@ insa-education/
     │   └── admin/                # AdminLayout, LeadStatusBadge
     └── lib/
         ├── auth/                 # Deterministik username mapping va sessiya tekshiruvi
-        ├── firebase/             # Firebase Client va Firebase Admin SDK
+        ├── supabase/             # Brauzer va server Supabase clientlari, row mappers
         ├── services/             # Telegram bildirishnomalar servisi
         ├── types/                # Lead, Profile va Audit TypeScript interfeyslari
         └── validations/          # Zod validatsiya sxemalari (O'zbekcha xato xabarlari)
@@ -88,7 +87,7 @@ npm install
 ```bash
 cp .env.example .env.local
 ```
-Va Firebase hamda Telegram sozlamalarini kiriting.
+Va Supabase hamda Telegram sozlamalarini kiriting. Supabase SQL Editor’da `supabase/schema.sql` faylini bir marta bajaring.
 
 ### 3. Dastlabki Super Adminni Initsializatsiya Qilish (Bootstrap)
 Bir martalik skript orqali tizimga birinchi Super Admin hisobi kiritiladi:
@@ -115,12 +114,11 @@ npm run start
 ## 🔐 Xavfsizlik Invariantlari va RBAC
 
 1. **Deterministik Username Autentifikatsiyasi:**
-   Firebase Auth parollarni xeshlovchi va tekshiruvchi asosiy vosita bo'lib xizmat qiladi. Foydalanuvchi nomlari xavfsiz deterministik manzilga (`username@insa.internal`) xaritalanadi.
+   Supabase Auth parollarni saqlaydi va tekshiradi. Foydalanuvchi nomlari ichki manzilga (`username@insa.internal`) xaritalanadi. Server API’lari har bir access tokenni tekshiradi va profil holatini bazadan qayta o‘qiydi.
 2. **Muzlatish (Freeze Engine):**
    Super Admin biror adminni muzlatganda:
-   - Firestore'da holat `FROZEN` ga o'tkaziladi.
-   - `admin.auth().revokeRefreshTokens(uid)` chaqirilib, mavjud barcha sessiyalar darhol bekor qilinadi.
-   - Himoyalangan API va Firestore Security Rules muzlatilgan hisoblardan kelgan so'rovlarni bir zumda rad etadi (`ACCOUNT_FROZEN`).
+   - Profil holati `FROZEN` ga o'tkazilib, Supabase Auth sessiyalari bekor qilinadi.
+   - Himoyalangan API’lar muzlatilgan profildan kelgan so‘rovlarni rad etadi (`ACCOUNT_FROZEN`).
 3. **Vaqtinchalik Parol Tizimi:**
    Super Admin tomonidan yaratilgan admin birinchi kirishida `/admin/change-password` sahifasiga yo'naltiriladi va o'zining shaxsiy parolini o'rnatmaguncha boshqaruv paneliga kiritilmaydi.
 4. **Failsafe Telegram Bildirishnomalari:**
@@ -128,7 +126,7 @@ npm run start
 
 ---
 
-## 📋 Sinov Natijalari (Verification Matrix)
+## 📋 Sinov Ssenariylari
 
 Avtomatlashtirilgan testlarni ishga tushirish uchun:
 ```bash
@@ -150,13 +148,9 @@ node scripts/test-scenarios.js
 1. Repozitoriyni GitHub hisobingizga yuklang.
 2. [Vercel Dashboard](https://vercel.com) orqali yangi loyiha qo'shing.
 3. **Environment Variables** bo'limida quyidagilarni sozlang:
-   - `FIREBASE_PROJECT_ID`
-   - `FIREBASE_CLIENT_EMAIL`
-   - `FIREBASE_PRIVATE_KEY`
-   - `NEXT_PUBLIC_FIREBASE_API_KEY`
-   - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
-   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
-   - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SECRET_KEY` (faqat server uchun Secret)
    - `TELEGRAM_BOT_TOKEN`
    - `TELEGRAM_CHAT_ID`
 4. **Deploy** tugmasini bosing — loyiha Vercel Hobby bepul rejasida to'liq mustaqil ishlaydi.

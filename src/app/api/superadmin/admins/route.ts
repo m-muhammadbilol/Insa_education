@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth/session";
-import { adminAuth, adminDb } from "@/lib/firebase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { auditToRow, profileFromRow, profileToRow } from "@/lib/supabase/mappers";
 import { usernameToInternalEmail, normalizeUsername } from "@/lib/auth/username-mapping";
 import { createAdminSchema } from "@/lib/validations/auth";
 import { UserProfile } from "@/lib/types/profile";
@@ -12,12 +13,12 @@ export async function GET() {
   try {
     await authenticateRequest("SUPER_ADMIN");
 
-    const snapshot = await adminDb().collection("profiles").orderBy("createdAt", "desc").get();
-    const admins: UserProfile[] = [];
-
-    snapshot.forEach((doc: any) => {
-      admins.push(doc.data() as UserProfile);
-    });
+    const { data, error } = await getSupabaseAdmin()
+      .from("profiles")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    const admins: UserProfile[] = (data || []).map(profileFromRow);
 
     return NextResponse.json({
       success: true,
@@ -61,13 +62,15 @@ export async function POST(req: NextRequest) {
     const internalEmail = usernameToInternalEmail(username);
 
     // Check if normalized username already exists in profiles
-    const existing = await adminDb()
-      .collection("profiles")
-      .where("normalizedUsername", "==", normalized)
-      .limit(1)
-      .get();
+    const supabase = getSupabaseAdmin();
+    const { data: existing, error: lookupError } = await supabase
+      .from("profiles")
+      .select("uid")
+      .eq("normalized_username", normalized)
+      .maybeSingle();
+    if (lookupError) throw lookupError;
 
-    if (!existing.empty) {
+    if (existing) {
       return NextResponse.json(
         {
           success: false,
@@ -77,18 +80,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Create user in Firebase Authentication
-    const userRecord = await adminAuth().createUser({
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: internalEmail,
       password: temporaryPassword,
-      displayName: username,
+      email_confirm: true,
+      user_metadata: { username },
     });
+    if (authError || !authData.user) throw authError || new Error("User creation failed");
 
     const nowIso = new Date().toISOString();
 
-    // 2. Create profile in Firestore
+    // 2. Create the Supabase profile row
     const newProfile: UserProfile = {
-      uid: userRecord.uid,
+      uid: authData.user.id,
       username: username.trim(),
       normalizedUsername: normalized,
       role: "ADMIN",
@@ -99,22 +103,26 @@ export async function POST(req: NextRequest) {
       lastLoginAt: null,
     };
 
-    await adminDb().collection("profiles").doc(userRecord.uid).set(newProfile);
+    const { error: profileError } = await supabase.from("profiles").insert(profileToRow(newProfile));
+    if (profileError) {
+      await supabase.auth.admin.deleteUser(authData.user.id);
+      throw profileError;
+    }
 
-    // 3. Log audit trail
-    await adminDb().collection("audit_logs").add({
+    const { error: auditError } = await supabase.from("audit_logs").insert(auditToRow({
       actorUid: actor.uid,
       actorRole: actor.role,
       actorUsername: actor.username,
       action: "CREATE_ADMIN",
       targetType: "ADMIN",
-      targetId: userRecord.uid,
+      targetId: authData.user.id,
       timestamp: nowIso,
       relevantMetadata: {
         createdUsername: username,
         assignedRole: "ADMIN",
       },
-    });
+    }));
+    if (auditError) throw auditError;
 
     return NextResponse.json(
       {

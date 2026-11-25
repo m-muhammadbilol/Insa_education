@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Link from "next/link";
-import { auth } from "@/lib/firebase/client";
+import { getAccessToken, supabase } from "@/lib/supabase/client";
 import { Lead } from "@/lib/types/lead";
 import LeadStatusBadge from "@/components/admin/LeadStatusBadge";
 import {
@@ -31,13 +31,12 @@ export default function AdminDashboardPage() {
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      const user = auth.currentUser;
-      if (!user) return;
-      const idToken = await user.getIdToken();
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
 
       const res = await fetch("/api/admin/leads?limit=100", {
         headers: {
-          Authorization: `Bearer ${idToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 

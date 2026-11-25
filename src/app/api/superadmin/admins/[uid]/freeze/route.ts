@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/auth/session";
-import { adminAuth, adminDb } from "@/lib/firebase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { auditToRow, profileFromRow } from "@/lib/supabase/mappers";
 import { AccountStatus } from "@/lib/types/profile";
 
 export async function PATCH(
@@ -28,18 +29,23 @@ export async function PATCH(
       );
     }
 
-    const profileRef = adminDb().collection("profiles").doc(targetUid);
-    const profileDoc = await profileRef.get();
+    const supabase = getSupabaseAdmin();
+    const { data: profileRow, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("uid", targetUid)
+      .maybeSingle();
+    if (profileError) throw profileError;
 
-    if (!profileDoc.exists) {
+    if (!profileRow) {
       return NextResponse.json(
         { success: false, message: "Administrator topilmadi" },
         { status: 404 }
       );
     }
 
-    const targetProfile = profileDoc.data();
-    if (targetProfile?.role === "SUPER_ADMIN") {
+    const targetProfile = profileFromRow(profileRow);
+    if (targetProfile.role === "SUPER_ADMIN") {
       return NextResponse.json(
         { success: false, message: "Super Admin hisobini muzlatib bo'lmaydi" },
         { status: 403 }
@@ -49,24 +55,17 @@ export async function PATCH(
     const newStatus: AccountStatus = actionType === "FREEZE" ? "FROZEN" : "ACTIVE";
     const nowIso = new Date().toISOString();
 
-    // 1. Update status in Firestore
-    await profileRef.update({
-      status: newStatus,
-      updatedAt: nowIso,
-    });
-
-    // 2. If FREEZING, immediately revoke Firebase Auth refresh tokens!
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ status: newStatus, updated_at: nowIso })
+      .eq("uid", targetUid);
+    if (updateError) throw updateError;
     if (actionType === "FREEZE") {
-      await adminAuth().revokeRefreshTokens(targetUid);
-      // Also disable the account in Firebase Auth
-      await adminAuth().updateUser(targetUid, { disabled: true });
-    } else {
-      // Re-enable in Firebase Auth
-      await adminAuth().updateUser(targetUid, { disabled: false });
+      const { error: signOutError } = await supabase.auth.admin.signOut(targetUid, "global");
+      if (signOutError) throw signOutError;
     }
 
-    // 3. Record audit log
-    await adminDb().collection("audit_logs").add({
+    const { error: auditError } = await supabase.from("audit_logs").insert(auditToRow({
       actorUid: actor.uid,
       actorRole: actor.role,
       actorUsername: actor.username,
@@ -75,10 +74,11 @@ export async function PATCH(
       targetId: targetUid,
       timestamp: nowIso,
       relevantMetadata: {
-        targetUsername: targetProfile?.username,
+        targetUsername: targetProfile.username,
         newStatus,
       },
-    });
+    }));
+    if (auditError) throw auditError;
 
     return NextResponse.json({
       success: true,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { leadSchema, cleanPhoneNumber } from "@/lib/validations/lead";
-import { adminDb } from "@/lib/firebase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendLeadTelegramNotification } from "@/lib/services/telegram";
 import { Lead } from "@/lib/types/lead";
 
@@ -47,19 +47,36 @@ export async function POST(req: NextRequest) {
     }
     submissionTimestamps.set(rateKey, now);
 
-    // 2. Prepare Lead document
-    const leadsCollection = adminDb().collection("leads");
-    const leadRef = leadsCollection.doc();
-    const leadId = leadRef.id;
     const nowIso = new Date().toISOString();
 
+    const leadRow = {
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      primary_phone: cleanedPrimary,
+      secondary_phone: cleanedSecondary,
+      course_interest: courseInterest ? courseInterest.trim() : null,
+      consent: true,
+      status: "NEW",
+      internal_notes: "",
+      created_at: nowIso,
+      updated_at: nowIso,
+      created_by: "public",
+    };
+
+    const { data: insertedLead, error: insertError } = await getSupabaseAdmin()
+      .from("leads")
+      .insert(leadRow)
+      .select("id")
+      .single();
+    if (insertError || !insertedLead) throw insertError || new Error("Lead insert failed");
+    const leadId = insertedLead.id;
     const newLead: Lead = {
       id: leadId,
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      primaryPhone: cleanedPrimary,
-      secondaryPhone: cleanedSecondary,
-      courseInterest: courseInterest ? courseInterest.trim() : null,
+      firstName: leadRow.first_name,
+      lastName: leadRow.last_name,
+      primaryPhone: leadRow.primary_phone,
+      secondaryPhone: leadRow.secondary_phone,
+      courseInterest: leadRow.course_interest,
       consent: true,
       status: "NEW",
       internalNotes: "",
@@ -67,9 +84,6 @@ export async function POST(req: NextRequest) {
       updatedAt: nowIso,
       createdBy: "public",
     };
-
-    // 3. Save to Firestore (Primary Operation)
-    await leadRef.set(newLead);
 
     // 4. Trigger Telegram Notification (Separate Operation - failsafe)
     // Runs without blocking/failing the response
