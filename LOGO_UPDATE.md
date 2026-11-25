@@ -1,19 +1,18 @@
-# Logo yangilanishi
+# Logo update
 
-Sana: 2026-11-25
+Date: 2026-11-25
 
-## Nima o‘zgardi
+## Changes
 
-- Foydalanuvchi yuborgan `IMG_4388.JPG` logotipi loyiha ichiga qo‘shildi.
-- `public/assets/insa-logo-4k.png` — yuborilgan kvadrat logotipning 4096 × 4096 PNG nusxasi.
-- `public/assets/insa-mark-photo.png` — shu rasmdan kesib olingan vortex belgisi (1024 × 1024), interfeysda kichik kvadrat logo o‘rnida ishlatiladi.
-- Navbar, footer, admin paneli, admin kirish sahifasi va Apple ikonkasidagi eski `insa-badge.svg` havolalari yangi `insa-mark-photo.png` bilan almashtirildi.
+- Added the logo image supplied by the user to the project.
+- `public/assets/insa-logo-4k.png` is a 4096 x 4096 PNG copy of the supplied square logo.
+- `public/assets/insa-mark-photo.png` is a 1024 x 1024 crop of the vortex mark, used for small square logo placements in the UI.
+- Updated the navbar, footer, admin panel, admin sign-in page, and Apple icon to use the new vortex mark.
 
-## Rasm sifati haqida
+## Image resolution
 
-Asl rasm 640 × 640 piksel edi. 4K fayl yuqori sifatli qayta o‘lchash bilan tayyorlandi; o‘lcham oshirildi, ammo kichik manbada bo‘lmagan tasvir tafsilotlari tiklanmaydi.
+The source image was 640 x 640 pixels. The 4K file was made with high-quality resizing; it has more pixels, but resizing cannot restore detail missing from the original image.
 
-## GitHub holati
+## GitHub
 
-O‘zgarishlar loyiha ichida tayyorlandi. Yuklanishi kerak bo‘lgan GitHub repozitoriy manzili Git remote sozlamasida mavjud emas. Repozitoriy URL’ini olgach, o‘zgarishlarni o‘sha manzilga yuklash mumkin.
-
+Uploaded to: https://github.com/m-muhammadbilol/Insa_education
