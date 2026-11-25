@@ -33,6 +33,7 @@ Firebase'dagi eski foydalanuvchilar, arizalar, izohlar yoki audit yozuvlari avto
 - Anchor tugmalarni bosganda sahifa darhol kerakli bo'limga o'tadi; global sekin smooth scroll olib tashlandi.
 - 1 MB atrofidagi PNG logotip kichik SVG logotip bilan almashtirildi, FAQ va kurslar interaktivligi native HTML/server renderga o'tkazilib client JavaScript yuklamasi kamaytirildi.
 - Ishlamaydigan til tanlash dropdown'i olib tashlandi (sayt faqat o'zbekcha tarjimaga ega edi); keraksiz blur effektlari ham olib tashlandi.
+- Production build hisobotida bosh sahifa route JavaScript hajmi 11.1 KB dan 6.57 KB ga, birinchi yuklanish JavaScript jami 147 KB dan 142 KB ga tushdi.
 - Ishlab turgan lead API arizani bazaga yozadi, rozilikni serverda tekshiradi, keyin Telegram xabarini imkon bo'lsa yuboradi. Jonli saytda yangi test arizasi yuborilmadi, shuning uchun Production end-to-end qabul tasdiqlanmadi.
 
 ## Admin parolini boshqarish
